@@ -76,7 +76,41 @@
 
     #pool-count.warning { color: #ff6b35; }
     #pool-count.ok { color: #00ff87; }
-  </style>
+  
+    .stickman { width: 56px; height: 56px; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+    .stickman svg { width: 100%; height: 100%; }
+    .stickman .arm { transform-origin: 28px 18px; animation: armMove 1.5s ease-in-out infinite; }
+    .stickman .leg { transform-origin: 28px 34px; animation: legMove 1.5s ease-in-out infinite; }
+    .stickman .torso { transform-origin: 28px 34px; animation: torsoBend 1.5s ease-in-out infinite; }
+
+    .stickman.push .arm { animation-name: armPush; }
+    .stickman.pull_down .arm { animation-name: armPullDown; }
+    .stickman.pull_row .arm { animation-name: armPullRow; }
+    .stickman.press .arm { animation-name: armPress; }
+    .stickman.squat .leg { animation-name: legSquat; }
+    .stickman.squat .torso { animation-name: torsoSquat; }
+    .stickman.curl .arm { animation-name: armCurl; }
+    .stickman.fly .arm { animation-name: armFly; }
+    .stickman.crunch .torso { animation-name: torsoCrunch; }
+    .stickman.plank .torso { animation-name: torsoStatic; }
+    .stickman.lunge .leg { animation-name: legLunge; }
+    .stickman.swing .torso { animation-name: torsoSwing; }
+    .stickman.carry .leg { animation-name: legCarry; }
+
+    @keyframes armPush { 0%,100%{transform:rotate(80deg)} 50%{transform:rotate(20deg)} }
+    @keyframes armPullDown { 0%,100%{transform:rotate(-80deg)} 50%{transform:rotate(-20deg)} }
+    @keyframes armPullRow { 0%,100%{transform:rotate(-20deg)} 50%{transform:rotate(80deg)} }
+    @keyframes armPress { 0%,100%{transform:rotate(-120deg)} 50%{transform:rotate(-20deg)} }
+    @keyframes armCurl { 0%,100%{transform:rotate(30deg)} 50%{transform:rotate(-90deg)} }
+    @keyframes armFly { 0%,100%{transform:rotate(20deg)} 50%{transform:rotate(100deg)} }
+    @keyframes legSquat { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(40deg)} }
+    @keyframes torsoSquat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+    @keyframes torsoCrunch { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(20deg)} }
+    @keyframes torsoStatic { 0%,100%{transform:rotate(0deg)} }
+    @keyframes legLunge { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(50deg)} }
+    @keyframes legCarry { 0%,100%{transform:rotate(10deg)} 50%{transform:rotate(-10deg)} }
+    @keyframes torsoSwing { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(15deg)} }
+</style>
 </head>
 <body>
 
@@ -239,115 +273,115 @@
 
 <script>
 var exercises=[
-  {id:1, name:'杠铃卧推',muscle:'chest',equip:'barbell',level:'intermediate',desc:'仰卧卧推凳，双手握杠铃杆，缓慢下放至胸部后推起。',sets:'4×8-12'},
-  {id:2, name:'哑铃卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'仰卧，双手持哑铃于胸侧，向上推起至手臂伸直。',sets:'4×8-12'},
-  {id:3, name:'上斜哑铃卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'上斜凳30-45度，双手持哑铃推起，侧重上胸。',sets:'4×8-12'},
-  {id:4, name:'俯卧撑',muscle:'chest',equip:'bodyweight',level:'beginner',desc:'双手撑地略宽于肩，身体呈直线，屈肘下放身体后推起。',sets:'3×12-20'},
-  {id:5, name:'哑铃飞鸟',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'仰卧，双手持哑铃于胸前，肘微屈向两侧打开再合拢。',sets:'4×10-15'},
-  {id:6, name:'龙门架夹胸',muscle:'chest',equip:'gym',level:'intermediate',desc:'双手握龙门架绳索把手，站于中间，向前下方夹拢。',sets:'4×12-15'},
-  {id:7, name:'双杠臂屈伸',muscle:'chest',equip:'bodyweight',level:'advanced',desc:'双手撑双杠，身体前倾，屈肘下放身体后撑起。',sets:'3×8-12'},
-  {id:8, name:'引体向上',muscle:'back',equip:'bodyweight',level:'advanced',desc:'双手宽握单杠，身体悬垂，背阔肌发力拉起身体至下巴过杠。',sets:'4×6-12'},
-  {id:9, name:'杠铃划船',muscle:'back',equip:'barbell',level:'intermediate',desc:'俯身至躯干与地面约45度，正握杠铃沿大腿上拉至下腹。',sets:'4×8-12'},
-  {id:10,name:'哑铃划船',muscle:'back',equip:'dumbbell',level:'intermediate',desc:'单膝跪凳，另一手持哑铃，背部挺直向后上方拉。',sets:'4×10-12'},
-  {id:11,name:'高位下拉',muscle:'back',equip:'gym',level:'beginner',desc:'坐于高位下拉机，双手宽握横杆，下拉至上胸位置。',sets:'4×10-12'},
-  {id:12,name:'坐姿划船',muscle:'back',equip:'gym',level:'beginner',desc:'坐于划船机，双手握把手��向后拉至腹部同时挺胸。',sets:'4×10-12'},
-  {id:13,name:'面拉',muscle:'back',equip:'band',level:'intermediate',desc:'双手握住弹力带两端，向面部方向拉开，收紧肩胛骨。',sets:'3×15'},
-  {id:14,name:'杠铃推举',muscle:'shoulders',equip:'barbell',level:'intermediate',desc:'站立，杠铃置于锁骨位，向上推举至头顶手臂伸直。',sets:'4×8-10'},
-  {id:15,name:'哑铃侧平举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'站立双手持哑铃于体侧，向两侧平举至水平位。',sets:'4×12-15'},
-  {id:16,name:'哑铃前平举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'站立双手持哑铃于大腿前，交替或同时向前平举至水平。',sets:'3×12-15'},
-  {id:17,name:'哑铃推举',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'坐姿或站姿，双手持哑铃于肩侧，向上推举至头顶。',sets:'4×8-12'},
-  {id:18,name:'蝴蝶机反向飞鸟',muscle:'shoulders',equip:'gym',level:'intermediate',desc:'面向蝴蝶机坐，双手握把手向后展开，收紧三角肌后束。',sets:'4×12-15'},
-  {id:19,name:'俯身飞鸟',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'俯身至躯干近水平，双手持哑铃向两侧平举。',sets:'3×12-15'},
-  {id:20,name:'杠铃深蹲',muscle:'legs',equip:'barbell',level:'intermediate',desc:'杠铃置于斜方肌上，下蹲至大腿与地面平行或更低，站起。',sets:'4×8-12'},
-  {id:21,name:'哑铃深蹲',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃于肩侧或体侧，下蹲至大腿与地面平行后站起。',sets:'4×10-15'},
-  {id:22,name:'腿举',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于腿举机，双脚踩踏板，屈膝至90度后蹬起。',sets:'4×10-12'},
-  {id:23,name:'罗马尼亚硬拉',muscle:'legs',equip:'barbell',level:'intermediate',desc:'俯身握杠铃，背部挺直，臀部后移，杠铃沿小腿下放至小腿中段。',sets:'4×8-12'},
-  {id:24,name:'哑铃箭步蹲',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃于体侧，向前跨步下蹲至双膝均呈90度。',sets:'3×10-12每侧'},
-  {id:25,name:'腿弯举',muscle:'legs',equip:'gym',level:'beginner',desc:'俯卧于腿弯举机，脚跟勾住滚轴，弯举至最大幅度。',sets:'4×12-15'},
-  {id:26,name:'保加利亚分腿蹲',muscle:'legs',equip:'dumbbell',level:'intermediate',desc:'后脚置于凳面，前腿下蹲至大腿平行地面，手持哑铃。',sets:'3×10-12每侧'},
-  {id:27,name:'臀推',muscle:'legs',equip:'barbell',level:'intermediate',desc:'上背靠凳，杠铃置于髋部，臀部发力向上推起。',sets:'4×12-15'},
-  {id:28,name:'自重深蹲',muscle:'legs',equip:'bodyweight',level:'beginner',desc:'站立与肩同宽，下蹲至大腿与地面平行，手臂前伸保持平衡。',sets:'3×15-20'},
-  {id:29,name:'杠铃弯举',muscle:'arms',equip:'barbell',level:'intermediate',desc:'站立，双手反握杠铃，上臂固定，弯举杠铃至肩前。',sets:'4×10-12'},
-  {id:30,name:'哑铃弯举',muscle:'arms',equip:'dumbbell',level:'beginner',desc:'站立或坐姿，双手持哑铃交替或同时弯举。',sets:'4×10-12'},
-  {id:31,name:'锤式弯举',muscle:'arms',equip:'dumbbell',level:'beginner',desc:'站立，双手持哑铃对握（掌心相对），弯举至肩前。',sets:'3×10-12'},
-  {id:32,name:'绳索下压',muscle:'arms',equip:'gym',level:'intermediate',desc:'站于龙门架旁，双手握绳索下压至手臂伸直，固定上臂。',sets:'4×12-15'},
-  {id:33,name:'窄距卧推',muscle:'arms',equip:'barbell',level:'intermediate',desc:'仰卧窄握杠铃，下放至胸，推起至手臂伸直，侧重三头。',sets:'4×8-12'},
-  {id:34,name:'臂屈伸（三头）',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'坐姿单手持哑铃于头后，屈肘下放后伸直手臂。',sets:'3×10-12每侧'},
-  {id:35,name:'钻石俯卧撑',muscle:'arms',equip:'bodyweight',level:'intermediate',desc:'双手呈菱形置于胸下，屈肘下放身体，侧重肱三头肌。',sets:'3×10-15'},
-  {id:36,name:'反握下拉',muscle:'arms',equip:'gym',level:'intermediate',desc:'双手反握横杆下拉至胸，侧重肱二头肌。',sets:'3×10-12'},
-  {id:37,name:'平板支撑',muscle:'core',equip:'bodyweight',level:'beginner',desc:'前臂撑地，身体呈直线，收紧核心保持不动。',sets:'3×30-60s'},
-  {id:38,name:'卷腹',muscle:'core',equip:'bodyweight',level:'beginner',desc:'仰卧屈膝，双手轻触耳侧，卷起上背部离地。',sets:'3×15-20'},
-  {id:39,name:'悬垂举腿',muscle:'core',equip:'bodyweight',level:'advanced',desc:'悬吊于单杠，核心发力将双腿向上卷起至水平或更高。',sets:'3×10-15'},
-  {id:40,name:'俄罗斯转体',muscle:'core',equip:'dumbbell',level:'intermediate',desc:'坐姿双脚离地，双手持哑铃片或徒手左右转体。',sets:'3×12-15每侧'},
-  {id:41,name:'卷腹机',muscle:'core',equip:'gym',level:'beginner',desc:'坐于卷腹机，双手握把手，腹部发力向下卷曲。',sets:'4×12-15'},
-  {id:42,name:'登山跑',muscle:'core',equip:'bodyweight',level:'beginner',desc:'平板支撑姿势，交替将膝盖拉向胸部，保持躯干稳定。',sets:'3×20-30'},
-  {id:43,name:'侧支撑',muscle:'core',equip:'bodyweight',level:'intermediate',desc:'侧卧单肘撑地，身体呈直线，保持稳定。',sets:'3×20-40s每侧'},
-  {id:44,name:'波比跳',muscle:'fullbody',equip:'bodyweight',level:'intermediate',desc:'下蹲→双手撑地→双腿后跳成平板→收回→跳起。',sets:'3×10-15'},
-  {id:45,name:'壶铃摆荡',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'双手持哑铃（代替壶铃）于腿间，臀部发力摆荡至胸前。',sets:'4×15-20'},
-  {id:46,name:'抓举',muscle:'fullbody',equip:'dumbbell',level:'advanced',desc:'下蹲持哑铃于两腿间，爆发力将哑铃从腿间举过头顶。',sets:'3×8-10每侧'},
-  {id:47,name:'TRX划船',muscle:'fullbody',equip:'bodyweight',level:'intermediate',desc:'双手握TRX带，身体后倾，背部发力拉向胸部。',sets:'3×12-15'},
-  {id:48,name:'推雪橇',muscle:'fullbody',equip:'gym',level:'intermediate',desc:'双手握雪橇推杆，躯干前倾，快速向前推动。',sets:'3×30m'},
-  {id:49,name:'下斜哑铃卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'下斜凳上仰卧，双手持哑铃推起，侧重下胸。',sets:'4×8-12'},
-  {id:50,name:'哑铃窄距卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'仰卧双手持哑铃并拢于胸前推起，侧重胸中缝。',sets:'3×10-12'},
-  {id:51,name:'T杠划船',muscle:'back',equip:'barbell',level:'intermediate',desc:'双腿跨T杠，俯身握把手向腹部拉起。',sets:'4×8-12'},
-  {id:52,name:'山羊挺身',muscle:'back',equip:'bodyweight',level:'beginner',desc:'俯卧于罗马椅上，身体下弯后挺身至躯干与腿呈直线。',sets:'3×12-15'},
-  {id:53,name:'阿诺德推举',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'坐姿双手持哑铃于胸前，掌心朝自己，推举同时旋转手腕。',sets:'3×8-12'},
-  {id:54,name:'杠铃片前平举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'双手持杠铃片或一片哑铃，向前平举至肩高。',sets:'3×12-15'},
-  {id:55,name:'高脚杯深蹲',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃一端于胸前，下蹲至大腿平行地面。',sets:'3×10-15'},
-  {id:56,name:'单腿臀桥',muscle:'legs',equip:'bodyweight',level:'beginner',desc:'仰卧单腿屈膝踩地，另一腿伸直，臀部发力上顶。',sets:'3×12-15每侧'},
-  {id:57,name:'哑铃提踵',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'站立手持哑铃，前脚掌踩台阶边缘，提踵至最高点。',sets:'4×15-20'},
-  {id:58,name:'牧师凳弯举',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'坐于牧师凳，手臂置于托板上，弯举哑铃。',sets:'3×10-12'},
-  {id:59,name:'仰卧臂屈伸',muscle:'arms',equip:'barbell',level:'intermediate',desc:'仰卧双手窄握杠铃，屈肘下放至头后再推起。',sets:'3×10-12'},
-  {id:60,name:'弹力带弯举',muscle:'arms',equip:'band',level:'beginner',desc:'双脚踩住弹力带中点，双手握两端弯举。',sets:'3×12-15'},
-  {id:61,name:'死虫式',muscle:'core',equip:'bodyweight',level:'beginner',desc:'仰卧四肢朝天，核心收紧缓慢交替伸展对侧手脚。',sets:'3×10-12每侧'},
-  {id:62,name:'反向卷腹',muscle:'core',equip:'bodyweight',level:'intermediate',desc:'仰卧双手置于体侧，将双腿和臀部向上卷起。',sets:'3×12-15'},
-  {id:63,name:'哑铃侧屈',muscle:'core',equip:'dumbbell',level:'beginner',desc:'站立单手持哑铃于体侧，向持哑铃侧屈体再还原。',sets:'3×12-15每侧'},
-  {id:64,name:'高翻推举',muscle:'fullbody',equip:'barbell',level:'advanced',desc:'爆发力将杠铃从地面翻至锁骨位后推举过头。',sets:'4×5-8'},
-  {id:65,name:'哑铃火箭推',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'手持哑铃于肩侧下蹲，站起时顺势将哑铃推过头顶。',sets:'3×10-12'},
-  {id:66,name:'熊爬',muscle:'fullbody',equip:'bodyweight',level:'intermediate',desc:'四肢着地，膝盖离地，对侧手脚交替向前爬行。',sets:'3×20m'},
-  {id:67,name:'弹力带划船',muscle:'back',equip:'band',level:'beginner',desc:'坐姿双脚抵住弹力带中部，双手握带拉向腹部。',sets:'3×15'},
-  {id:68,name:'弹力带推举',muscle:'shoulders',equip:'band',level:'beginner',desc:'站姿双脚踩住弹力带中部，双手握两端向上推举。',sets:'3×12-15'},
-  {id:69,name:'弹力带深蹲',muscle:'legs',equip:'band',level:'beginner',desc:'双脚踩住弹力带中部于肩宽，双手握端于肩前下蹲。',sets:'3×15'},
-  {id:70,name:'弹力带髋外展',muscle:'legs',equip:'band',level:'beginner',desc:'弹力带套于脚踝上方，侧向行走或站姿外展腿。',sets:'3×15每侧'},
-  {id:71,name:'弹力带引体辅助',muscle:'back',equip:'band',level:'beginner',desc:'将弹力带挂于单杠上，单膝或双脚踩带协助引体向上。',sets:'3×8-12'},
-  {id:72,name:'哑铃上提',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'站立双手持哑铃于大腿前，耸肩提拉至下颌高度。',sets:'3×10-12'},
-  {id:73,name:'器械推胸',muscle:'chest',equip:'gym',level:'beginner',desc:'坐于器械推胸机，双手握把手向前方推起至手臂伸直。',sets:'4×10-12'},
-  {id:74,name:'斯万推胸',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'双手夹住一片哑铃于胸前，向前推出并夹紧胸肌。',sets:'3×12-15'},
-  {id:75,name:'弹力带夹胸',muscle:'chest',equip:'band',level:'beginner',desc:'弹力带固定于身后，双手握带向前夹胸至交叉。',sets:'3×15'},
-  {id:76,name:'悍马机卧推',muscle:'chest',equip:'gym',level:'intermediate',desc:'坐于悍马卧推机，单臂或双臂向前推起。',sets:'4×10-12'},
-  {id:77,name:'对握引体向上',muscle:'back',equip:'bodyweight',level:'intermediate',desc:'双手对握单杠（掌心相对），拉起身体至下巴过杠。',sets:'4×6-12'},
-  {id:78,name:'直臂下压',muscle:'back',equip:'gym',level:'beginner',desc:'站于龙门架前，双手握直杆，直臂下压至大腿前。',sets:'4×12-15'},
-  {id:79,name:'架上硬拉',muscle:'back',equip:'barbell',level:'intermediate',desc:'杠铃置于安全架上约膝高位置，俯身拉起至站立。',sets:'4×8-10'},
-  {id:80,name:'单臂跪姿划船',muscle:'back',equip:'dumbbell',level:'intermediate',desc:'单膝跪凳，同侧手撑凳面，另一手持哑铃向髋部划船。',sets:'4×10-12'},
-  {id:81,name:'早安体前屈',muscle:'back',equip:'barbell',level:'intermediate',desc:'杠铃置于斜方肌上，俯身至躯干近水平后起身。',sets:'3×10-12'},
-  {id:82,name:'弹力带高位下拉',muscle:'back',equip:'band',level:'beginner',desc:'弹力带挂于高处，坐姿或跪姿向下拉至锁骨位置。',sets:'3×15'},
-  {id:83,name:'坐姿哑铃推举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'坐于凳上背部挺直，双手持哑铃于肩侧推举至头顶。',sets:'4×10-12'},
-  {id:84,name:'直立划船',muscle:'shoulders',equip:'barbell',level:'intermediate',desc:'站立窄握杠铃于大腿前，沿身体上拉至下颌高度。',sets:'4×10-12'},
-  {id:85,name:'杠铃片环绕',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'双手持杠铃片于头侧画圈环绕，活动肩关节。',sets:'3×12-15'},
-  {id:86,name:'弹力带侧平举',muscle:'shoulders',equip:'band',level:'beginner',desc:'单脚踩弹力带，同侧手持带向侧上方拉起至水平。',sets:'3×15'},
-  {id:87,name:'器械推举',muscle:'shoulders',equip:'gym',level:'beginner',desc:'坐于肩部推举机，双手握把手向上推起。',sets:'4×10-12'},
-  {id:88,name:'前蹲',muscle:'legs',equip:'barbell',level:'advanced',desc:'杠铃置于锁骨前三角肌上，身体直立下蹲至大腿平行。',sets:'4×6-10'},
-  {id:89,name:'哈克深蹲',muscle:'legs',equip:'gym',level:'intermediate',desc:'背靠哈克机踏板，肩扛护垫，屈膝下蹲后蹬起。',sets:'4×10-12'},
-  {id:90,name:'相扑硬拉',muscle:'legs',equip:'barbell',level:'intermediate',desc:'宽站距脚尖外展，双手在腿内侧握杠铃拉起。',sets:'4×8-10'},
-  {id:91,name:'腿伸展',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于腿伸展机，脚踝勾住滚轴，膝关节伸直收缩股四头肌。',sets:'4×12-15'},
-  {id:92,name:'坐姿腿弯举',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于腿弯举机，脚踝后侧抵住滚轴下压弯曲膝关节。',sets:'4×12-15'},
-  {id:93,name:'哑铃罗马尼亚硬拉',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃于体前，俯身至哑铃降至小腿中段。',sets:'4×10-12'},
-  {id:94,name:'弹力带臀桥',muscle:'legs',equip:'band',level:'beginner',desc:'弹力带绕膝上方，仰卧屈膝臀部发力上顶。',sets:'3×15'},
-  {id:95,name:'集中弯举',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'坐姿单臂肘抵大腿内侧，弯举哑铃至肩前。',sets:'3×10-12'},
-  {id:96,name:'上斜哑铃弯举',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'仰卧于上斜凳，双手持哑铃自然下垂后弯举。',sets:'3×10-12'},
-  {id:97,name:'双杠臂屈伸三头版',muscle:'arms',equip:'bodyweight',level:'intermediate',desc:'双手撑双杠身体垂直不前倾，屈肘下放后撑起，侧重三头。',sets:'3×8-15'},
-  {id:98,name:'窄距俯卧撑',muscle:'arms',equip:'bodyweight',level:'beginner',desc:'两手间距窄于肩，肘贴体侧，屈肘下放后推起。',sets:'3×10-15'},
-  {id:99,name:'弹力带下压',muscle:'arms',equip:'band',level:'beginner',desc:'弹力带挂于高处，双手握带向下压至手臂伸直。',sets:'3×15'},
-  {id:100,name:'仰卧抬腿',muscle:'core',equip:'bodyweight',level:'beginner',desc:'仰卧双腿伸直，核心发力将腿抬起至垂直再缓慢下放。',sets:'3×10-15'},
-  {id:101,name:'雨刷式',muscle:'core',equip:'bodyweight',level:'advanced',desc:'仰卧双腿抬起垂直，左右摆动双腿至最大幅度。',sets:'3×10-12'},
-  {id:102,name:'药球砸地',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'双手持哑铃代替药球，举过头顶后猛力向下砸至地面。',sets:'3×10-12'},
-  {id:103,name:'跳绳',muscle:'fullbody',equip:'bodyweight',level:'beginner',desc:'手持跳绳连续跳动，可作为有氧热身或HIIT。',sets:'3×1-3min'},
-  {id:104,name:'哑铃农夫行走',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'双手各持重哑铃于体侧，挺胸核心收紧向前行走。',sets:'3×30m'},
-  {id:105,name:'战绳',muscle:'fullbody',equip:'gym',level:'intermediate',desc:'双手握战绳两端，交替或同时上下甩动，全身发力。',sets:'3×20-30s'},
-  {id:106,name:'弹力带早安式',muscle:'back',equip:'band',level:'beginner',desc:'双脚踩住弹力带中部于肩上，俯身至躯干水平后起身。',sets:'3×12-15'},
-  {id:107,name:'器械夹腿',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于夹腿机双腿分开，大腿内收肌群发力夹拢。',sets:'4×12-15'},
-  {id:108,name:'器械外展',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于髋外展机，双腿并拢对抗阻力向外展开。',sets:'4×12-15'},
-  {id:109,name:'反向飞鸟机',muscle:'shoulders',equip:'gym',level:'beginner',desc:'面向蝴蝶机坐姿，双手握把手水平向后展开。',sets:'4×12-15'},
+  {id:1, move:'push', name:'杠铃卧推',muscle:'chest',equip:'barbell',level:'intermediate',desc:'仰卧卧推凳，双手握杠铃杆，缓慢下放至胸部后推起。',sets:'4×8-12'},
+  {id:2, move:'push', name:'哑铃卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'仰卧，双手持哑铃于胸侧，向上推起至手臂伸直。',sets:'4×8-12'},
+  {id:3, move:'push', name:'上斜哑铃卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'上斜凳30-45度，双手持哑铃推起，侧重上胸。',sets:'4×8-12'},
+  {id:4, move:'push', name:'俯卧撑',muscle:'chest',equip:'bodyweight',level:'beginner',desc:'双手撑地略宽于肩，身体呈直线，屈肘下放身体后推起。',sets:'3×12-20'},
+  {id:5, move:'fly', name:'哑铃飞鸟',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'仰卧，双手持哑铃于胸前，肘微屈向两侧打开再合拢。',sets:'4×10-15'},
+  {id:6, move:'fly', name:'龙门架夹胸',muscle:'chest',equip:'gym',level:'intermediate',desc:'双手握龙门架绳索把手，站于中间，向前下方夹拢。',sets:'4×12-15'},
+  {id:7, move:'push', name:'双杠臂屈伸',muscle:'chest',equip:'bodyweight',level:'advanced',desc:'双手撑双杠，身体前倾，屈肘下放身体后撑起。',sets:'3×8-12'},
+  {id:8, move:'pull_down', name:'引体向上',muscle:'back',equip:'bodyweight',level:'advanced',desc:'双手宽握单杠，身体悬垂，背阔肌发力拉起身体至下巴过杠。',sets:'4×6-12'},
+  {id:9, move:'pull_row', name:'杠铃划船',muscle:'back',equip:'barbell',level:'intermediate',desc:'俯身至躯干与地面约45度，正握杠铃沿大腿上拉至下腹。',sets:'4×8-12'},
+  {id:10,move:'pull_row',name:'哑铃划船',muscle:'back',equip:'dumbbell',level:'intermediate',desc:'单膝跪凳，另一手持哑铃，背部挺直向后上方拉。',sets:'4×10-12'},
+  {id:11,move:'pull_down',name:'高位下拉',muscle:'back',equip:'gym',level:'beginner',desc:'坐于高位下拉机，双手宽握横杆，下拉至上胸位置。',sets:'4×10-12'},
+  {id:12,move:'pull_row',name:'坐姿划船',muscle:'back',equip:'gym',level:'beginner',desc:'坐于划船机，双手握把手��向后拉至腹部同时挺胸。',sets:'4×10-12'},
+  {id:13,move:'pull_row',name:'面拉',muscle:'back',equip:'band',level:'intermediate',desc:'双手握住弹力带两端，向面部方向拉开，收紧肩胛骨。',sets:'3×15'},
+  {id:14,move:'press',name:'杠铃推举',muscle:'shoulders',equip:'barbell',level:'intermediate',desc:'站立，杠铃置于锁骨位，向上推举至头顶手臂伸直。',sets:'4×8-10'},
+  {id:15,move:'fly',name:'哑铃侧平举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'站立双手持哑铃于体侧，向两侧平举至水平位。',sets:'4×12-15'},
+  {id:16,move:'press',name:'哑铃前平举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'站立双手持哑铃于大腿前，交替或同时向前平举至水平。',sets:'3×12-15'},
+  {id:17,move:'press',name:'哑铃推举',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'坐姿或站姿，双手持哑铃于肩侧，向上推举至头顶。',sets:'4×8-12'},
+  {id:18,move:'fly',name:'蝴蝶机反向飞鸟',muscle:'shoulders',equip:'gym',level:'intermediate',desc:'面向蝴蝶机坐，双手握把手向后展开，收紧三角肌后束。',sets:'4×12-15'},
+  {id:19,move:'fly',name:'俯身飞鸟',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'俯身至躯干近水平，双手持哑铃向两侧平举。',sets:'3×12-15'},
+  {id:20,move:'squat',name:'杠铃深蹲',muscle:'legs',equip:'barbell',level:'intermediate',desc:'杠铃置于斜方肌上，下蹲至大腿与地面平行或更低，站起。',sets:'4×8-12'},
+  {id:21,move:'squat',name:'哑铃深蹲',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃于肩侧或体侧，下蹲至大腿与地面平行后站起。',sets:'4×10-15'},
+  {id:22,move:'squat',name:'腿举',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于腿举机，双脚踩踏板，屈膝至90度后蹬起。',sets:'4×10-12'},
+  {id:23,move:'squat',name:'罗马尼亚硬拉',muscle:'legs',equip:'barbell',level:'intermediate',desc:'俯身握杠铃，背部挺直，臀部后移，杠铃沿小腿下放至小腿中段。',sets:'4×8-12'},
+  {id:24,move:'lunge',name:'哑铃箭步蹲',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃于体侧，向前跨步下蹲至双膝均呈90度。',sets:'3×10-12每侧'},
+  {id:25,move:'curl',name:'腿弯举',muscle:'legs',equip:'gym',level:'beginner',desc:'俯卧于腿弯举机，脚跟勾住滚轴，弯举至最大幅度。',sets:'4×12-15'},
+  {id:26,move:'lunge',name:'保加利亚分腿蹲',muscle:'legs',equip:'dumbbell',level:'intermediate',desc:'后脚置于凳面，前腿下蹲至大腿平行地面，手持哑铃。',sets:'3×10-12每侧'},
+  {id:27,move:'squat',name:'臀推',muscle:'legs',equip:'barbell',level:'intermediate',desc:'上背靠凳，杠铃置于髋部，臀部发力向上推起。',sets:'4×12-15'},
+  {id:28,move:'squat',name:'自重深蹲',muscle:'legs',equip:'bodyweight',level:'beginner',desc:'站立与肩同宽，下蹲至大腿与地面平行，手臂前伸保持平衡。',sets:'3×15-20'},
+  {id:29,move:'curl',name:'杠铃弯举',muscle:'arms',equip:'barbell',level:'intermediate',desc:'站立，双手反握杠铃，上臂固定，弯举杠铃至肩前。',sets:'4×10-12'},
+  {id:30,move:'curl',name:'哑铃弯举',muscle:'arms',equip:'dumbbell',level:'beginner',desc:'站立或坐姿，双手持哑铃交替或同时弯举。',sets:'4×10-12'},
+  {id:31,move:'curl',name:'锤式弯举',muscle:'arms',equip:'dumbbell',level:'beginner',desc:'站立，双手持哑铃对握（掌心相对），弯举至肩前。',sets:'3×10-12'},
+  {id:32,move:'push',name:'绳索下压',muscle:'arms',equip:'gym',level:'intermediate',desc:'站于龙门架旁，双手握绳索下压至手臂伸直，固定上臂。',sets:'4×12-15'},
+  {id:33,move:'push',name:'窄距卧推',muscle:'arms',equip:'barbell',level:'intermediate',desc:'仰卧窄握杠铃，下放至胸，推起至手臂伸直，侧重三头。',sets:'4×8-12'},
+  {id:34,move:'press',name:'臂屈伸（三头）',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'坐姿单手持哑铃于头后，屈肘下放后伸直手臂。',sets:'3×10-12每侧'},
+  {id:35,move:'push',name:'钻石俯卧撑',muscle:'arms',equip:'bodyweight',level:'intermediate',desc:'双手呈菱形置于胸下，屈肘下放身体，侧重肱三头肌。',sets:'3×10-15'},
+  {id:36,move:'pull_down',name:'反握下拉',muscle:'arms',equip:'gym',level:'intermediate',desc:'双手反握横杆下拉至胸，侧重肱二头肌。',sets:'3×10-12'},
+  {id:37,move:'plank',name:'平板支撑',muscle:'core',equip:'bodyweight',level:'beginner',desc:'前臂撑地，身体呈直线，收紧核心保持不动。',sets:'3×30-60s'},
+  {id:38,move:'crunch',name:'卷腹',muscle:'core',equip:'bodyweight',level:'beginner',desc:'仰卧屈膝，双手轻触耳侧，卷起上背部离地。',sets:'3×15-20'},
+  {id:39,move:'crunch',name:'悬垂举腿',muscle:'core',equip:'bodyweight',level:'advanced',desc:'悬吊于单杠，核心发力将双腿向上卷起至水平或更高。',sets:'3×10-15'},
+  {id:40,move:'crunch',name:'俄罗斯转体',muscle:'core',equip:'dumbbell',level:'intermediate',desc:'坐姿双脚离地，双手持哑铃片或徒手左右转体。',sets:'3×12-15每侧'},
+  {id:41,move:'crunch',name:'卷腹机',muscle:'core',equip:'gym',level:'beginner',desc:'坐于卷腹机，双手握把手，腹部发力向下卷曲。',sets:'4×12-15'},
+  {id:42,move:'plank',name:'登山跑',muscle:'core',equip:'bodyweight',level:'beginner',desc:'平板支撑姿势，交替将膝盖拉向胸部，保持躯干稳定。',sets:'3×20-30'},
+  {id:43,move:'plank',name:'侧支撑',muscle:'core',equip:'bodyweight',level:'intermediate',desc:'侧卧单肘撑地，身体呈直线，保持稳定。',sets:'3×20-40s每侧'},
+  {id:44,move:'squat',name:'波比跳',muscle:'fullbody',equip:'bodyweight',level:'intermediate',desc:'下蹲→双手撑地→双腿后跳成平板→收回→跳起。',sets:'3×10-15'},
+  {id:45,move:'swing',name:'壶铃摆荡',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'双手持哑铃（代替壶铃）于腿间，臀部发力摆荡至胸前。',sets:'4×15-20'},
+  {id:46,move:'press',name:'抓举',muscle:'fullbody',equip:'dumbbell',level:'advanced',desc:'下蹲持哑铃于两腿间，爆发力将哑铃从腿间举过头顶。',sets:'3×8-10每侧'},
+  {id:47,move:'pull_row',name:'TRX划船',muscle:'fullbody',equip:'bodyweight',level:'intermediate',desc:'双手握TRX带，身体后倾，背部发力拉向胸部。',sets:'3×12-15'},
+  {id:48,move:'carry',name:'推雪橇',muscle:'fullbody',equip:'gym',level:'intermediate',desc:'双手握雪橇推杆，躯干前倾，快速向前推动。',sets:'3×30m'},
+  {id:49,move:'push',name:'下斜哑铃卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'下斜凳上仰卧，双手持哑铃推起，侧重下胸。',sets:'4×8-12'},
+  {id:50,move:'push',name:'哑铃窄距卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'仰卧双手持哑铃并拢于胸前推起，侧重胸中缝。',sets:'3×10-12'},
+  {id:51,move:'pull_row',name:'T杠划船',muscle:'back',equip:'barbell',level:'intermediate',desc:'双腿跨T杠，俯身握把手向腹部拉起。',sets:'4×8-12'},
+  {id:52,move:'squat',name:'山羊挺身',muscle:'back',equip:'bodyweight',level:'beginner',desc:'俯卧于罗马椅上，身体下弯后挺身至躯干与腿呈直线。',sets:'3×12-15'},
+  {id:53,move:'press',name:'阿诺德推举',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'坐姿双手持哑铃于胸前，掌心朝自己，推举同时旋转手腕。',sets:'3×8-12'},
+  {id:54,move:'press',name:'杠铃片前平举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'双手持杠铃片或一片哑铃，向前平举至肩高。',sets:'3×12-15'},
+  {id:55,move:'squat',name:'高脚杯深蹲',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃一端于胸前，下蹲至大腿平行地面。',sets:'3×10-15'},
+  {id:56,move:'squat',name:'单腿臀桥',muscle:'legs',equip:'bodyweight',level:'beginner',desc:'仰卧单腿屈膝踩地，另一腿伸直，臀部发力上顶。',sets:'3×12-15每侧'},
+  {id:57,move:'squat',name:'哑铃提踵',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'站立手持哑铃，前脚掌踩台阶边缘，提踵至最高点。',sets:'4×15-20'},
+  {id:58,move:'curl',name:'牧师凳弯举',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'坐于牧师凳，手臂置于托板上，弯举哑铃。',sets:'3×10-12'},
+  {id:59,move:'press',name:'仰卧臂屈伸',muscle:'arms',equip:'barbell',level:'intermediate',desc:'仰卧双手窄握杠铃，屈肘下放至头后再推起。',sets:'3×10-12'},
+  {id:60,move:'curl',name:'弹力带弯举',muscle:'arms',equip:'band',level:'beginner',desc:'双脚踩住弹力带中点，双手握两端弯举。',sets:'3×12-15'},
+  {id:61,move:'crunch',name:'死虫式',muscle:'core',equip:'bodyweight',level:'beginner',desc:'仰卧四肢朝天，核心收紧缓慢交替伸展对侧手脚。',sets:'3×10-12每侧'},
+  {id:62,move:'crunch',name:'反向卷腹',muscle:'core',equip:'bodyweight',level:'intermediate',desc:'仰卧双手置于体侧，将双腿和臀部向上卷起。',sets:'3×12-15'},
+  {id:63,move:'crunch',name:'哑铃侧屈',muscle:'core',equip:'dumbbell',level:'beginner',desc:'站立单手持哑铃于体侧，向持哑铃侧屈体再还原。',sets:'3×12-15每侧'},
+  {id:64,move:'press',name:'高翻推举',muscle:'fullbody',equip:'barbell',level:'advanced',desc:'爆发力将杠铃从地面翻至锁骨位后推举过头。',sets:'4×5-8'},
+  {id:65,move:'squat',name:'哑铃火箭推',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'手持哑铃于肩侧下蹲，站起时顺势将哑铃推过头顶。',sets:'3×10-12'},
+  {id:66,move:'carry',name:'熊爬',muscle:'fullbody',equip:'bodyweight',level:'intermediate',desc:'四肢着地，膝盖离地，对侧手脚交替向前爬行。',sets:'3×20m'},
+  {id:67,move:'pull_row',name:'弹力带划船',muscle:'back',equip:'band',level:'beginner',desc:'坐姿双脚抵住弹力带中部，双手握带拉向腹部。',sets:'3×15'},
+  {id:68,move:'press',name:'弹力带推举',muscle:'shoulders',equip:'band',level:'beginner',desc:'站姿双脚踩住弹力带中部，双手握两端向上推举。',sets:'3×12-15'},
+  {id:69,move:'squat',name:'弹力带深蹲',muscle:'legs',equip:'band',level:'beginner',desc:'双脚踩住弹力带中部于肩宽，双手握端于肩前下蹲。',sets:'3×15'},
+  {id:70,move:'fly',name:'弹力带髋外展',muscle:'legs',equip:'band',level:'beginner',desc:'弹力带套于脚踝上方，侧向行走或站姿外展腿。',sets:'3×15每侧'},
+  {id:71,move:'pull_down',name:'弹力带引体辅助',muscle:'back',equip:'band',level:'beginner',desc:'将弹力带挂于单杠上，单膝或双脚踩带协助引体向上。',sets:'3×8-12'},
+  {id:72,move:'press',name:'哑铃上提',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'站立双手持哑铃于大腿前，耸肩提拉至下颌高度。',sets:'3×10-12'},
+  {id:73,move:'push',name:'器械推胸',muscle:'chest',equip:'gym',level:'beginner',desc:'坐于器械推胸机，双手握把手向前方推起至手臂伸直。',sets:'4×10-12'},
+  {id:74,move:'fly',name:'斯万推胸',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'双手夹住一片哑铃于胸前，向前推出并夹紧胸肌。',sets:'3×12-15'},
+  {id:75,move:'fly',name:'弹力带夹胸',muscle:'chest',equip:'band',level:'beginner',desc:'弹力带固定于身后，双手握带向前夹胸至交叉。',sets:'3×15'},
+  {id:76,move:'push',name:'悍马机卧推',muscle:'chest',equip:'gym',level:'intermediate',desc:'坐于悍马卧推机，单臂或双臂向前推起。',sets:'4×10-12'},
+  {id:77,move:'pull_down',name:'对握引体向上',muscle:'back',equip:'bodyweight',level:'intermediate',desc:'双手对握单杠（掌心相对），拉起身体至下巴过杠。',sets:'4×6-12'},
+  {id:78,move:'push',name:'直臂下压',muscle:'back',equip:'gym',level:'beginner',desc:'站于龙门架前，双手握直杆，直臂下压至大腿前。',sets:'4×12-15'},
+  {id:79,move:'squat',name:'架上硬拉',muscle:'back',equip:'barbell',level:'intermediate',desc:'杠铃置于安全架上约膝高位置，俯身拉起至站立。',sets:'4×8-10'},
+  {id:80,move:'pull_row',name:'单臂跪姿划船',muscle:'back',equip:'dumbbell',level:'intermediate',desc:'单膝跪凳，同侧手撑凳面，另一手持哑铃向髋部划船。',sets:'4×10-12'},
+  {id:81,move:'squat',name:'早安体前屈',muscle:'back',equip:'barbell',level:'intermediate',desc:'杠铃置于斜方肌上，俯身至躯干近水平后起身。',sets:'3×10-12'},
+  {id:82,move:'pull_down',name:'弹力带高位下拉',muscle:'back',equip:'band',level:'beginner',desc:'弹力带挂于高处，坐姿或跪姿向下拉至锁骨位置。',sets:'3×15'},
+  {id:83,move:'press',name:'坐姿哑铃推举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'坐于凳上背部挺直，双手持哑铃于肩侧推举至头顶。',sets:'4×10-12'},
+  {id:84,move:'press',name:'直立划船',muscle:'shoulders',equip:'barbell',level:'intermediate',desc:'站立窄握杠铃于大腿前，沿身体上拉至下颌高度。',sets:'4×10-12'},
+  {id:85,move:'fly',name:'杠铃片环绕',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'双手持杠铃片于头侧画圈环绕，活动肩关节。',sets:'3×12-15'},
+  {id:86,move:'fly',name:'弹力带侧平举',muscle:'shoulders',equip:'band',level:'beginner',desc:'单脚踩弹力带，同侧手持带向侧上方拉起至水平。',sets:'3×15'},
+  {id:87,move:'press',name:'器械推举',muscle:'shoulders',equip:'gym',level:'beginner',desc:'坐于肩部推举机，双手握把手向上推起。',sets:'4×10-12'},
+  {id:88,move:'squat',name:'前蹲',muscle:'legs',equip:'barbell',level:'advanced',desc:'杠铃置于锁骨前三角肌上，身体直立下蹲至大腿平行。',sets:'4×6-10'},
+  {id:89,move:'squat',name:'哈克深蹲',muscle:'legs',equip:'gym',level:'intermediate',desc:'背靠哈克机踏板，肩扛护垫，屈膝下蹲后蹬起。',sets:'4×10-12'},
+  {id:90,move:'squat',name:'相扑硬拉',muscle:'legs',equip:'barbell',level:'intermediate',desc:'宽站距脚尖外展，双手在腿内侧握杠铃拉起。',sets:'4×8-10'},
+  {id:91,move:'curl',name:'腿伸展',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于腿伸展机，脚踝勾住滚轴，膝关节伸直收缩股四头肌。',sets:'4×12-15'},
+  {id:92,move:'curl',name:'坐姿腿弯举',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于腿弯举机，脚踝后侧抵住滚轴下压弯曲膝关节。',sets:'4×12-15'},
+  {id:93,move:'squat',name:'哑铃罗马尼亚硬拉',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃于体前，俯身至哑铃降至小腿中段。',sets:'4×10-12'},
+  {id:94,move:'squat',name:'弹力带臀桥',muscle:'legs',equip:'band',level:'beginner',desc:'弹力带绕膝上方，仰卧屈膝臀部发力上顶。',sets:'3×15'},
+  {id:95,move:'curl',name:'集中弯举',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'坐姿单臂肘抵大腿内侧，弯举哑铃至肩前。',sets:'3×10-12'},
+  {id:96,move:'curl',name:'上斜哑铃弯举',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'仰卧于上斜凳，双手持哑铃自然下垂后弯举。',sets:'3×10-12'},
+  {id:97,move:'push',name:'双杠臂屈伸三头版',muscle:'arms',equip:'bodyweight',level:'intermediate',desc:'双手撑双杠身体垂直不前倾，屈肘下放后撑起，侧重三头。',sets:'3×8-15'},
+  {id:98,move:'push',name:'窄距俯卧撑',muscle:'arms',equip:'bodyweight',level:'beginner',desc:'两手间距窄于肩，肘贴体侧，屈肘下放后推起。',sets:'3×10-15'},
+  {id:99,move:'push',name:'弹力带下压',muscle:'arms',equip:'band',level:'beginner',desc:'弹力带挂于高处，双手握带向下压至手臂伸直。',sets:'3×15'},
+  {id:100,move:'crunch',name:'仰卧抬腿',muscle:'core',equip:'bodyweight',level:'beginner',desc:'仰卧双腿伸直，核心发力将腿抬起至垂直再缓慢下放。',sets:'3×10-15'},
+  {id:101,move:'crunch',name:'雨刷式',muscle:'core',equip:'bodyweight',level:'advanced',desc:'仰卧双腿抬起垂直，左右摆动双腿至最大幅度。',sets:'3×10-12'},
+  {id:102,move:'press',name:'药球砸地',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'双手持哑铃代替药球，举过头顶后猛力向下砸至地面。',sets:'3×10-12'},
+  {id:103,move:'carry',name:'跳绳',muscle:'fullbody',equip:'bodyweight',level:'beginner',desc:'手持跳绳连续跳动，可作为有氧热身或HIIT。',sets:'3×1-3min'},
+  {id:104,move:'carry',name:'哑铃农夫行走',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'双手各持重哑铃于体侧，挺胸核心收紧向前行走。',sets:'3×30m'},
+  {id:105,move:'swing',name:'战绳',muscle:'fullbody',equip:'gym',level:'intermediate',desc:'双手握战绳两端，交替或同时上下甩动，全身发力。',sets:'3×20-30s'},
+  {id:106,move:'squat',name:'弹力带早安式',muscle:'back',equip:'band',level:'beginner',desc:'双脚踩住弹力带中部于肩上，俯身至躯干水平后起身。',sets:'3×12-15'},
+  {id:107,move:'fly',name:'器械夹腿',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于夹腿机双腿分开，大腿内收肌群发力夹拢。',sets:'4×12-15'},
+  {id:108,move:'fly',name:'器械外展',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于髋外展机，双腿并拢对抗阻力向外展开。',sets:'4×12-15'},
+  {id:109,move:'fly',name:'反向飞鸟机',muscle:'shoulders',equip:'gym',level:'beginner',desc:'面向蝴蝶机坐姿，双手握把手水平向后展开。',sets:'4×12-15'},
 ];
 
 var muscleNames={fullbody:'全身',chest:'胸部',back:'背部',shoulders:'肩部',legs:'腿部',arms:'手臂',core:'核心'};
@@ -420,7 +454,7 @@ function renderPool(pool,m,l,e){
   for(var i=0;i<pool.length;i++){
     var ex=pool[i];
     var sel=selectedInPool.has(ex.id);
-    html+='<div class="pool-checkbox'+(sel?' selected':'')+'" data-id="'+ex.id+'" onclick="togglePoolItem('+ex.id+')" style="animation-delay:'+(i*0.015)+'s"><div class="check-box"></div><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip '+(ex.level==='beginner'?'blue':ex.level==='advanced'?'purple':'green')+' mt-1">'+(ex.level==='beginner'?'初级':ex.level==='intermediate'?'中级':'高级')+'</div></div></div>';
+    html+='<div class="pool-checkbox'+(sel?' selected':'')+'" data-id="'+ex.id+'" onclick="togglePoolItem('+ex.id+')" style="animation-delay:'+(i*0.015)+'s">'+stickmanSVG(ex.move)+'<div class="check-box"></div><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip '+(ex.level==='beginner'?'blue':ex.level==='advanced'?'purple':'green')+' mt-1">'+(ex.level==='beginner'?'初级':ex.level==='intermediate'?'中级':'高级')+'</div></div></div>';
   }
   document.getElementById('pool-exercises').innerHTML=html;
   updatePoolCount();
@@ -470,7 +504,7 @@ function confirmSelection(){
   var html='';
   for(var i=0;i<selected.length;i++){
     var ex=selected[i];
-    html+='<div class="result-item animate-in" style="animation-delay:'+(i*0.05)+'s"><span class="order-num">'+(i+1)+'</span><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip default mt-1">'+muscleNames[ex.muscle]+'</div></div></div>';
+    html+='<div class="result-item animate-in" style="animation-delay:'+(i*0.05)+'s">'+stickmanSVG(ex.move)+'<span class="order-num">'+(i+1)+'</span><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip default mt-1">'+muscleNames[ex.muscle]+'</div></div></div>';
   }
   document.getElementById('plan-exercises').innerHTML=html;
   document.getElementById('plan-title').textContent=muscleNames[m]+'训练 · '+levelNames[l];
@@ -519,13 +553,15 @@ function showPage(name){
   if(name==='generate')refreshPool();
 }
 
+function stickmanSVG(m){var cls=m||"push";return "<span class="stickman "+cls+""><svg viewBox="0 0 56 56"><circle cx="28" cy="8" r="6" fill="none" stroke="#64748b" stroke-width="1.5"/><line class="torso" x1="28" y1="14" x2="28" y2="34" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/><g class="arm"><line x1="28" y1="18" x2="20" y2="26" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="26" x2="14" y2="34" stroke="#94a3b8" stroke-width="1.2" stroke-linecap="round"/></g><g class="leg"><line x1="28" y1="34" x2="20" y2="47" stroke="#64748b" stroke-width="1.2" stroke-linecap="round"/><line x1="20" y1="47" x2="16" y2="54" stroke="#94a3b8" stroke-width="1" stroke-linecap="round"/><line x1="28" y1="34" x2="36" y2="47" stroke="#64748b" stroke-width="1.2" stroke-linecap="round"/><line x1="36" y1="47" x2="40" y2="54" stroke="#94a3b8" stroke-width="1" stroke-linecap="round"/></g></svg></span>"}
+
 function renderLibrary(filter){
   var grid=document.getElementById('library-grid');
   var allEx=exercises.concat(customExercises);var filtered=filter==='all'?allEx:allEx.filter(function(e){return e.muscle===filter});
   var html='';
   for(var i=0;i<filtered.length;i++){
     var ex=filtered[i];
-    html+='<div class="exercise-card animate-in">'+(ex.custom?'<div onclick="event.stopPropagation();deleteCustomExercise('+ex.id+')" class="absolute top-2 right-2 text-slate-500 hover:text-red-400 cursor-pointer" title="删除自定义动作"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>':'')+'<div class="flex items-start justify-between mb-1.5"><h4 class="font-semibold text-sm">'+ex.name+'</h4><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span></div><p class="text-xs text-slate-500 mb-2.5">'+ex.desc+'</p><div class="flex gap-1.5 flex-wrap"><span class="chip green">'+muscleNames[ex.muscle]+'</span><span class="chip orange">'+equipNames[ex.equip]+'</span><span class="chip '+(ex.level==='beginner'?'blue':ex.level==='advanced'?'purple':'')+'">'+(ex.level==='beginner'?'初级':ex.level==='intermediate'?'中级':'高级')+'</span></div></div>';
+    html+='<div class="exercise-card animate-in">'+stickmanSVG(ex.move)+''+(ex.custom?'<div onclick="event.stopPropagation();deleteCustomExercise('+ex.id+')" class="absolute top-2 right-2 text-slate-500 hover:text-red-400 cursor-pointer" title="删除自定义动作"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>':'')+'<div class="flex items-start justify-between mb-1.5"><h4 class="font-semibold text-sm">'+ex.name+'</h4><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span></div><p class="text-xs text-slate-500 mb-2.5">'+ex.desc+'</p><div class="flex gap-1.5 flex-wrap"><span class="chip green">'+muscleNames[ex.muscle]+'</span><span class="chip orange">'+equipNames[ex.equip]+'</span><span class="chip '+(ex.level==='beginner'?'blue':ex.level==='advanced'?'purple':'')+'">'+(ex.level==='beginner'?'初级':ex.level==='intermediate'?'中级':'高级')+'</span></div></div>';
   }
   grid.innerHTML=html;
 }
