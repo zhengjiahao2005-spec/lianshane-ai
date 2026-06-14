@@ -457,7 +457,7 @@ function renderPool(pool,m,l,e){
   for(var i=0;i<pool.length;i++){
     var ex=pool[i];
     var sel=selectedInPool.has(ex.id);
-    html+='<div class="pool-checkbox'+(sel?' selected':'')+'" data-id="'+ex.id+'" onclick="togglePoolItem('+ex.id+')" style="animation-delay:'+(i*0.015)+'s">'+stickmanSVG(ex.move)+'<div class="check-box"></div><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip '+(ex.level==='beginner'?'blue':ex.level==='advanced'?'purple':'green')+' mt-1">'+(ex.level==='beginner'?'初级':ex.level==='intermediate'?'中级':'高级')+'</div></div></div>';
+    html+='<div class="pool-checkbox'+(sel?' selected':'')+'" data-id="'+ex.id+'" onclick="togglePoolItem('+ex.id+')" style="animation-delay:'+(i*0.015)+'s">'+stickmanSVG(ex.name,ex.move)+'<div class="check-box"></div><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip '+(ex.level==='beginner'?'blue':ex.level==='advanced'?'purple':'green')+' mt-1">'+(ex.level==='beginner'?'初级':ex.level==='intermediate'?'中级':'高级')+'</div></div></div>';
   }
   document.getElementById('pool-exercises').innerHTML=html;
   updatePoolCount();
@@ -507,7 +507,7 @@ function confirmSelection(){
   var html='';
   for(var i=0;i<selected.length;i++){
     var ex=selected[i];
-    html+='<div class="result-item animate-in" style="animation-delay:'+(i*0.05)+'s">'+stickmanSVG(ex.move)+'<span class="order-num">'+(i+1)+'</span><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip default mt-1">'+muscleNames[ex.muscle]+'</div></div></div>';
+    html+='<div class="result-item animate-in" style="animation-delay:'+(i*0.05)+'s">'+stickmanSVG(ex.name,ex.move)+'<span class="order-num">'+(i+1)+'</span><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip default mt-1">'+muscleNames[ex.muscle]+'</div></div></div>';
   }
   document.getElementById('plan-exercises').innerHTML=html;
   document.getElementById('plan-title').textContent=muscleNames[m]+'训练 · '+levelNames[l];
@@ -741,17 +741,487 @@ function _stopFigure(el){
   if(r){r.dispose();if(r.domElement&&r.domElement.parentNode)r.domElement.parentNode.removeChild(r.domElement)}
   el._figRenderer=null;el._figScene=null;el._figBody=null;
 }
-function figure3D(m,id){
-  _initObserver();
+function gifName(name){
+  // Map Chinese exercise names to English GIF filenames
+  var map={
+    '杠铃卧推':'Barbell-Bench-Press','哑铃卧推':'Dumbbell-Bench-Press','上斜哑铃卧推':'Incline-Dumbbell-Press',
+    '俯卧撑':'Push-Ups','哑铃飞鸟':'Dumbbell-Fly','龙门架夹胸':'Cable-Crossover','双杠臂屈伸':'Dips',
+    '引体向上':'Pull-Ups','杠铃划船':'Barbell-Bent-Over-Row','哑铃划船':'Dumbbell-Row',
+    '高位下拉':'Lat-Pulldown','坐姿划船':'Seated-Cable-Row','面拉':'Face-Pull',
+    '杠铃推举':'Barbell-Shoulder-Press','哑铃侧平举':'Dumbbell-Lateral-Raise','哑铃前平举':'Dumbbell-Front-Raise',
+    '哑铃推举':'Dumbbell-Shoulder-Press','蝴蝶机反向飞鸟':'Reverse-Fly','俯身飞鸟':'Bent-Over-Lateral-Raise',
+    '杠铃深蹲':'Barbell-Squat','哑铃深蹲':'Dumbbell-Squat','腿举':'Leg-Press','罗马尼亚硬拉':'Romanian-Deadlift',
+    '哑铃箭步蹲':'Dumbbell-Lunge','腿弯举':'Leg-Curl','保加利亚分腿蹲':'Bulgarian-Split-Squat','臀推':'Hip-Thrust',
+    '自重深蹲':'Bodyweight-Squat','杠铃弯举':'Barbell-Curl','哑铃弯举':'Dumbbell-Curl','锤式弯举':'Hammer-Curl',
+    '绳索下压':'Triceps-Pushdown','窄距卧推':'Close-Grip-Bench-Press','臂屈伸（三头）':'Overhead-Triceps-Extension',
+    '钻石俯卧撑':'Diamond-Push-Ups','反握下拉':'Reverse-Grip-Pulldown','平板支撑':'Plank','卷腹':'Crunch',
+    '悬垂举腿':'Hanging-Leg-Raise','俄罗斯转体':'Russian-Twist','卷腹机':'Ab-Crunch-Machine','登山跑':'Mountain-Climbers',
+    '侧支撑':'Side-Plank','波比跳':'Burpees','壶铃摆荡':'Kettlebell-Swing','抓举':'Dumbbell-Snatch',
+    'TRX划船':'TRX-Row','推雪橇':'Sled-Push','下斜哑铃卧推':'Decline-Dumbbell-Press','哑铃窄距卧推':'Dumbbell-Squeeze-Press',
+    'T杠划船':'T-Bar-Row','山羊挺身':'Back-Extension','阿诺德推举':'Arnold-Press','杠铃片前平举':'Plate-Front-Raise',
+    '高脚杯深蹲':'Goblet-Squat','单腿臀桥':'Single-Leg-Glute-Bridge','哑铃提踵':'Dumbbell-Calf-Raise',
+    '牧师凳弯举':'Preacher-Curl','仰卧臂屈伸':'Skull-Crusher','弹力带弯举':'Band-Curl',
+    '死虫式':'Dead-Bug','反向卷腹':'Reverse-Crunch','哑铃侧屈':'Dumbbell-Side-Bend',
+    '高翻推举':'Clean-and-Press','哑铃火箭推':'Dumbbell-Thruster','熊爬':'Bear-Crawl',
+    '弹力带划船':'Band-Row','弹力带推举':'Band-Shoulder-Press','弹力带深蹲':'Band-Squat',
+    '弹力带髋外展':'Band-Hip-Abduction','弹力带引体辅助':'Band-Assisted-Pull-Up','哑铃上提':'Upright-Row',
+    '器械推胸':'Chest-Press-Machine','斯万推胸':'Svend-Press','弹力带夹胸':'Band-Chest-Fly','悍马机卧推':'Hammer-Strength-Press',
+    '对握引体向上':'Neutral-Grip-Pull-Up','直臂下压':'Straight-Arm-Pulldown','架上硬拉':'Rack-Pull',
+    '单臂跪姿划船':'One-Arm-Dumbbell-Row','早安体前屈':'Good-Morning','弹力带高位下拉':'Band-Lat-Pulldown',
+    '坐姿哑铃推举':'Seated-Dumbbell-Press','直立划船':'Barbell-Upright-Row','杠铃片环绕':'Plate-Circles',
+    '弹力带侧平举':'Band-Lateral-Raise','器械推举':'Machine-Shoulder-Press','前蹲':'Front-Squat',
+    '哈克深蹲':'Hack-Squat','相扑硬拉':'Sumo-Deadlift','腿伸展':'Leg-Extension','坐姿腿弯举':'Seated-Leg-Curl',
+    '哑铃罗马尼亚硬拉':'Dumbbell-Romanian-Deadlift','弹力带臀桥':'Band-Glute-Bridge',
+    '集中弯举':'Concentration-Curl','上斜哑铃弯举':'Incline-Dumbbell-Curl','双杠臂屈伸三头版':'Triceps-Dip',
+    '窄距俯卧撑':'Close-Grip-Push-Up','弹力带下压':'Band-Pushdown','仰卧抬腿':'Leg-Raise','雨刷式':'Windshield-Wiper',
+    '药球砸地':'Medicine-Ball-Slam','跳绳':'Jump-Rope','哑铃农夫行走':'Farmers-Walk','战绳':'Battle-Ropes',
+    '弹力带早安式':'Band-Good-Morning','器械夹腿':'Seated-Hip-Adduction','器械外展':'Seated-Hip-Abduction','反向飞鸟机':'Reverse-Pec-Deck'
+  };
+  return map[name]||name;
+}
+function _tryGif(el,gname,move){
+  var urls=[
+    'https://fitnessprogramer.com/wp-content/uploads/2021/02/'+gname+'.gif',
+    'https://fitnessprogramer.com/wp-content/uploads/2021/03/'+gname+'.gif',
+    'https://fitnessprogramer.com/wp-content/uploads/2021/04/'+gname+'.gif',
+    'https://fitnessprogramer.com/wp-content/uploads/2022/01/'+gname+'.gif',
+    'https://fitnessprogramer.com/wp-content/uploads/2022/02/'+gname+'.gif',
+  ];
+  var img=document.createElement('img');
+  img.style.cssText='width:64px;height:64px;object-fit:cover;border-radius:6px';
+  img.alt='';
+  var tried=0;
+  function tryNext(){
+    if(tried>=urls.length){img.onerror=function(){el.innerHTML='';_startFigure(el,move)};img.src='';return}
+    img.src=urls[tried];tried++}
+  img.onload=function(){el.innerHTML='';el.appendChild(img)}
+  img.onerror=tryNext;
+  tryNext();
+}
+function figure3D(name,move,id){
+  _initObserver();var gname=gifName(name||'');
   var c='<span class="figure3d" id="fig-'+id+'"></span>';
   setTimeout(function(){
     var el=document.getElementById('fig-'+id);
-    if(el){el._figData={move:m||'push'};_figObs.observe(el)}
+    if(el){el._figData={gifName:gname,move:move||'push'};_figObs.observe(el)}
   },50);
   return c;
 }
-var _figId=0;
-function stickmanSVG(m){_figId++;return figure3D(m,_figId);}
+
+function getPool(){
+  var m=document.getElementById('gen-muscle').value;
+  var l=document.getElementById('gen-level').value;
+  var e=document.getElementById('gen-equip').value;
+  var all=exercises.concat(customExercises);var pool=all.filter(function(x){
+    if(m!=='fullbody'&&x.muscle!==m)return false;
+    if(e!=='all'&&x.equip!==e)return false;
+    var li=['beginner','intermediate','advanced'].indexOf(l);
+    var xi=['beginner','intermediate','advanced'].indexOf(x.level);
+    return xi<=li+1;
+  });
+  if(pool.length===0){
+    pool=all.filter(function(x){
+      if(m!=='fullbody'&&x.muscle!==m)return false;
+      var li=['beginner','intermediate','advanced'].indexOf(l);
+      var xi=['beginner','intermediate','advanced'].indexOf(x.level);
+      return xi<=li+1;
+    });
+  }
+  return pool;
+}
+
+function onFormChanged(){
+  // Reset view
+  document.getElementById('plan-result').classList.add('hidden');
+  // Immediately show pool
+  refreshPool();
+}
+
+function refreshPool(){
+  var m=document.getElementById('gen-muscle').value;
+  var l=document.getElementById('gen-level').value;
+  var e=document.getElementById('gen-equip').value;
+  var cnt=parseInt(document.getElementById('gen-count').value)||5;
+
+  currentPool=getPool();
+  if(currentPool.length===0){showToast('没有匹配的动作，请调整条件');return;}
+
+  // AI pre-select
+  var pickCnt=Math.min(currentPool.length,cnt);
+  var lvl=['beginner','intermediate','advanced'].indexOf(l);
+  var sorted=currentPool.slice().sort(function(a,b){
+    var ai=['beginner','intermediate','advanced'].indexOf(a.level);
+    var bi=['beginner','intermediate','advanced'].indexOf(b.level);
+    return Math.abs(ai-lvl)-Math.abs(bi-lvl);
+  });
+  selectedInPool=new Set(sorted.slice(0,Math.min(pickCnt*2,sorted.length)).sort(function(){return Math.random()-0.5}).slice(0,pickCnt).map(function(x){return x.id}));
+
+  renderPool(currentPool,m,l,e);
+  document.getElementById('plan-placeholder').classList.add('hidden');
+  document.getElementById('pool-header').classList.remove('hidden');
+  document.getElementById('pool-bottom').classList.remove('hidden');
+  document.getElementById('plan-result').classList.add('hidden');
+}
+
+function renderPool(pool,m,l,e){
+  var cnt=parseInt(document.getElementById('gen-count').value)||5;
+  document.getElementById('pool-title').textContent=muscleNames[m]+' · '+levelNames[l]+' · '+equipNames[e];
+  document.getElementById('pool-subtitle').textContent=pool.length+' 个匹配动作，建议勾选 '+cnt+' 个，但最终由你决定';
+
+  var html='';
+  for(var i=0;i<pool.length;i++){
+    var ex=pool[i];
+    var sel=selectedInPool.has(ex.id);
+    html+='<div class="pool-checkbox'+(sel?' selected':'')+'" data-id="'+ex.id+'" onclick="togglePoolItem('+ex.id+')" style="animation-delay:'+(i*0.015)+'s">'+stickmanSVG(ex.name,ex.move)+'<div class="check-box"></div><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip '+(ex.level==='beginner'?'blue':ex.level==='advanced'?'purple':'green')+' mt-1">'+(ex.level==='beginner'?'初级':ex.level==='intermediate'?'中级':'高级')+'</div></div></div>';
+  }
+  document.getElementById('pool-exercises').innerHTML=html;
+  updatePoolCount();
+}
+
+function togglePoolItem(id){
+  if(selectedInPool.has(id))selectedInPool.delete(id);else selectedInPool.add(id);
+  var el=document.querySelector('.pool-checkbox[data-id="'+id+'"]');
+  if(el)el.classList.toggle('selected',selectedInPool.has(id));
+  updatePoolCount();
+}
+
+function selectAllInPool(){selectedInPool=new Set(currentPool.map(function(x){return x.id}));var els=document.querySelectorAll('.pool-checkbox');for(var i=0;i<els.length;i++)els[i].classList.add('selected');updatePoolCount();}
+function deselectAllInPool(){selectedInPool=new Set();var els=document.querySelectorAll('.pool-checkbox');for(var i=0;i<els.length;i++)els[i].classList.remove('selected');updatePoolCount();}
+
+function aiPick(){
+  var cnt=parseInt(document.getElementById('gen-count').value)||5;
+  var l=document.getElementById('gen-level').value;
+  var lvl=['beginner','intermediate','advanced'].indexOf(l);
+  var sorted=currentPool.slice().sort(function(a,b){
+    var ai=['beginner','intermediate','advanced'].indexOf(a.level);
+    var bi=['beginner','intermediate','advanced'].indexOf(b.level);
+    return Math.abs(ai-lvl)-Math.abs(bi-lvl);
+  });
+  var pickCnt=Math.min(currentPool.length,cnt);
+  selectedInPool=new Set(sorted.slice(0,Math.min(pickCnt*2,sorted.length)).sort(function(){return Math.random()-0.5}).slice(0,pickCnt).map(function(x){return x.id}));
+  var els=document.querySelectorAll('.pool-checkbox');
+  for(var i=0;i<els.length;i++){var id=parseInt(els[i].dataset.id);els[i].classList.toggle('selected',selectedInPool.has(id));}
+  updatePoolCount();
+  showToast('AI 已为你推荐 '+selectedInPool.size+' 个动作');
+}
+
+function updatePoolCount(){
+  var el=document.getElementById('pool-count');
+  var n=selectedInPool.size;
+  el.textContent='已选 '+n+' 个';
+  el.className=n===0?'text-sm font-medium text-slate-500':n>12?'text-sm font-medium warning':'text-sm font-medium ok';
+}
+
+function confirmSelection(){
+  if(selectedInPool.size===0){showToast('请至少勾选一个动作');return;}
+  var selected=currentPool.filter(function(e){return selectedInPool.has(e.id)});
+  var m=document.getElementById('gen-muscle').value;
+  var l=document.getElementById('gen-level').value;
+  var e=document.getElementById('gen-equip').value;
+
+  var html='';
+  for(var i=0;i<selected.length;i++){
+    var ex=selected[i];
+    html+='<div class="result-item animate-in" style="animation-delay:'+(i*0.05)+'s">'+stickmanSVG(ex.name,ex.move)+'<span class="order-num">'+(i+1)+'</span><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip default mt-1">'+muscleNames[ex.muscle]+'</div></div></div>';
+  }
+  document.getElementById('plan-exercises').innerHTML=html;
+  document.getElementById('plan-title').textContent=muscleNames[m]+'训练 · '+levelNames[l];
+  document.getElementById('plan-summary').textContent=selected.length+' 个动作 · 约 '+(selected.length*5+10)+' 分钟 · '+equipNames[e];
+
+  var tips={fullbody:['复合动作优先，训练前做5分钟动态热身','组间休息60-90秒，复合动作可延长至2分钟','动作顺序：大肌群→小肌群，爆发力→力量→耐力'],chest:['训练前做肩关节热身和空手卧推激活','上斜/平板/下斜动作搭配全面刺激胸肌','离心阶段控制2-3秒，顶峰收缩1秒'],back:['训练前做肩胛骨激活','划船时注意肩胛骨后收，不要用惯性','引体向上建议放在第一个动作'],shoulders:['训练前做肩袖激活和小重量侧平举热身','推举动作放前面，飞鸟类放后面','侧平举用稍轻重量，感受三角肌中束发力'],legs:['训练前充分热身膝盖和髋关节','大重量深蹲放第一个，辅助动作后置','训练后做股四头肌和腘绳肌拉伸'],arms:['复合动作优先，孤立动作后做','弯举时固定上臂不晃动','训练后注意拉伸三头和二头'],core:['卷腹时下巴微收避免颈部代偿','负重训练后做核心训练效果更好','保持正常呼吸，不要憋气']};
+  var dt=['训练前做5-10分钟有氧热身','每个动作选择合适的重量，保证动作质量','训练后做5分钟静态拉伸'];
+  var t=tips[m]||dt;
+  document.getElementById('plan-tips').innerHTML=[].concat(t,dt).slice(0,4).map(function(tx){return '<li>'+tx+'</li>'}).join('');
+
+  document.getElementById('pool-header').classList.add('hidden');
+  document.getElementById('pool-exercises').innerHTML='';
+  document.getElementById('pool-bottom').classList.add('hidden');
+  document.getElementById('plan-result').classList.remove('hidden');
+  document.getElementById('plan-result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function backToPool(){
+  document.getElementById('plan-result').classList.add('hidden');
+  document.getElementById('pool-header').classList.remove('hidden');
+  document.getElementById('pool-bottom').classList.remove('hidden');
+  renderPool(currentPool,document.getElementById('gen-muscle').value,document.getElementById('gen-level').value,document.getElementById('gen-equip').value);
+  document.getElementById('pool-header').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function quickGenerate(){
+  var m=document.getElementById('quick-muscle').value;
+  var l=document.getElementById('quick-level').value;
+  var e=document.getElementById('quick-equip').value;
+  document.getElementById('gen-muscle').value=m;
+  document.getElementById('gen-level').value=l;
+  document.getElementById('gen-equip').value=e;
+  document.getElementById('gen-count').value=5;
+  showPage('generate');
+  setTimeout(refreshPool,300);
+}
+
+function showPage(name){
+  var secs=document.querySelectorAll('.page-section');
+  for(var i=0;i<secs.length;i++)secs[i].classList.remove('active');
+  document.getElementById('page-'+name).classList.add('active');
+  var links=document.querySelectorAll('.nav-link');
+  for(var j=0;j<links.length;j++)links[j].classList.toggle('active',links[j].dataset.page===name);
+  window.scrollTo({top:0,behavior:'smooth'});
+  // Auto-show pool when landing on generate page
+  if(name==='generate')refreshPool();
+}
+
+var _figObs=null,_figQueue=[];
+function _initObserver(){
+  if(_figObs)return;
+  _figObs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        var el=e.target;
+        var data=el._figData;
+        if(data&&!el._figStarted){
+          el._figStarted=true;
+          _startFigure(el,data.move);
+        }
+      }else{
+        if(el._figStarted){
+          el._figStarted=false;
+          _stopFigure(el);
+        }
+      }
+    });
+  },{rootMargin:'100px'});
+}
+function _startFigure(el,move){
+  var cls=move||'push';
+  if(el.querySelector('canvas'))return;
+  var w=64,h=64;
+  var scene=new THREE.Scene();
+  var cam=new THREE.PerspectiveCamera(40,w/h,0.1,100);
+  cam.position.set(0,1.1,5);cam.lookAt(0,0.8,0);
+  var renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
+  renderer.setSize(w,h);renderer.setPixelRatio(1);
+  el.appendChild(renderer.domElement);
+  var amb=new THREE.AmbientLight(0xffffff,0.7);scene.add(amb);
+  var dir=new THREE.DirectionalLight(0xffffff,0.9);dir.position.set(3,4,5);scene.add(dir);
+  var dir2=new THREE.DirectionalLight(0x8866ff,0.3);dir2.position.set(-2,1,-1);scene.add(dir2);
+  var skin=new THREE.MeshPhongMaterial({color:0x00dd88,emissive:0x003322,shininess:80,specular:0x44ffaa});
+  var dark=new THREE.MeshPhongMaterial({color:0x009955,emissive:0x001111,shininess:60});
+  var joint=new THREE.MeshPhongMaterial({color:0x33ffaa,emissive:0x004422,shininess:100});
+  // Body parts
+  var head=new THREE.Mesh(new THREE.SphereGeometry(0.22,16,12),skin);head.position.y=1.55;
+  var neck=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.09,0.15,8),dark);neck.position.y=1.35;
+  var torso=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,0.55,8),skin);torso.position.y=1.05;
+  var hip=new THREE.Mesh(new THREE.SphereGeometry(0.18,8,6),dark);hip.position.y=0.78;
+  // Arms - left
+  var uarmL=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.08,0.5,6),skin);uarmL.position.set(0.22,1.32,0);
+  var elbowL=new THREE.Mesh(new THREE.SphereGeometry(0.07,6,4),joint);elbowL.position.set(0.22,1.07,0);
+  var farmL=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.45,6),dark);farmL.position.set(0.22,0.82,0);
+  // Arms - right
+  var uarmR=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.08,0.5,6),skin);uarmR.position.set(-0.22,1.32,0);
+  var elbowR=new THREE.Mesh(new THREE.SphereGeometry(0.07,6,4),joint);elbowR.position.set(-0.22,1.07,0);
+  var farmR=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.45,6),dark);farmR.position.set(-0.22,0.82,0);
+  // Legs - left
+  var ulegL=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.11,0.5,6),dark);ulegL.position.set(0.1,0.5,0);
+  var kneeL=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,4),joint);kneeL.position.set(0.1,0.25,0);
+  var llegL=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.07,0.5,6),skin);llegL.position.set(0.1,-0.02,0);
+  // Legs - right
+  var ulegR=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.11,0.5,6),dark);ulegR.position.set(-0.1,0.5,0);
+  var kneeR=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,4),joint);kneeR.position.set(-0.1,0.25,0);
+  var llegR=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.07,0.5,6),skin);llegR.position.set(-0.1,-0.02,0);
+  // Equipment
+  var equip=new THREE.Group();
+  var barGeom=new THREE.CylinderGeometry(0.04,0.04,1.2,6);
+  var barMat=new THREE.MeshPhongMaterial({color:0xcccccc,emissive:0x111111});
+  var bar=new THREE.Mesh(barGeom,barMat);
+  var plateL=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.08,12),new THREE.MeshPhongMaterial({color:0xff4444,emissive:0x220000}));
+  var plateR=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.08,12),new THREE.MeshPhongMaterial({color:0xff4444,emissive:0x220000}));
+  plateL.position.x=0.6;plateR.position.x=-0.6;
+  equip.add(bar);equip.add(plateL);equip.add(plateR);
+  equip.visible=false;
+  // Body group
+  var body=new THREE.Group();
+  body.add(head);body.add(neck);body.add(torso);body.add(hip);
+  body.add(uarmL);body.add(elbowL);body.add(farmL);
+  body.add(uarmR);body.add(elbowR);body.add(farmR);
+  body.add(ulegL);body.add(kneeL);body.add(llegL);
+  body.add(ulegR);body.add(kneeR);body.add(llegR);
+  body.add(equip);
+  body.position.y=-0.2;
+  // Hip pivot for squat/hinge
+  var hipPivot=new THREE.Group();hipPivot.position.set(0,0.78,-0.02);
+  body.add(hipPivot);
+  // Move legs into hip pivot
+  hipPivot.add(ulegL);hipPivot.add(kneeL);hipPivot.add(llegL);
+  hipPivot.add(ulegR);hipPivot.add(kneeR);hipPivot.add(llegR);
+  scene.add(body);
+  el._figScene=scene;el._figRenderer=renderer;el._figBody=body;
+  el._figHip=hipPivot;el._figEquip=equip;
+  // Arm pivots
+  var shoulderPivotL=new THREE.Group();shoulderPivotL.position.set(0.22,1.32,0);
+  body.add(shoulderPivotL);shoulderPivotL.add(uarmL);shoulderPivotL.add(elbowL);shoulderPivotL.add(farmL);
+  var shoulderPivotR=new THREE.Group();shoulderPivotR.position.set(-0.22,1.32,0);
+  body.add(shoulderPivotR);shoulderPivotR.add(uarmR);shoulderPivotR.add(elbowR);shoulderPivotR.add(farmR);
+  el._figShL=shoulderPivotL;el._figShR=shoulderPivotR;
+  el._figElL=elbowL;el._figElR=elbowR;
+  el._figKnL=kneeL;el._figKnR=kneeR;
+  var _t=0;
+  function anim(ts){
+    _t=ts*0.001;var a,s;
+    switch(cls){
+      case'push':
+        a=Math.sin(_t*3.5)*0.5+0.5;s=Math.abs(Math.sin(_t*3.5))*0.3;
+        shoulderPivotL.rotation.z=a;shoulderPivotR.rotation.z=a;
+        elbowL.position.y=0.6-Math.sin(_t*3.5)*0.15;elbowR.position.y=0.6-Math.sin(_t*3.5)*0.15;
+        equip.visible=true;equip.position.set(0,0.7+Math.sin(_t*3.5)*0.4,0);equip.rotation.set(0,0,0);
+        farmL.position.set(0,0.35+Math.sin(_t*3.5)*0.2,0);farmR.position.set(0,0.35+Math.sin(_t*3.5)*0.2,0);
+        break;
+      case'pull_down':
+        a=Math.sin(_t*3)*0.5+0.5;
+        shoulderPivotL.rotation.z=-1.8+a*0.5;shoulderPivotR.rotation.z=-1.8+a*0.5;
+        equip.visible=true;equip.position.set(0,1.8-a*0.6,0.3);
+        break;
+      case'pull_row':
+        a=Math.sin(_t*2.8)*0.4+0.4;
+        body.rotation.x=a*0.5;
+        shoulderPivotL.rotation.z=1.2+a*0.4;shoulderPivotR.rotation.z=1.2+a*0.4;
+        equip.visible=true;equip.position.set(0,0.3-a*0.3,0.8);equip.rotation.x=-0.6;
+        break;
+      case'press':
+        a=Math.sin(_t*3.2)*0.5+0.5;
+        shoulderPivotL.rotation.z=-2.4+a*0.3;shoulderPivotR.rotation.z=-2.4+a*0.3;
+        equip.visible=true;equip.position.set(0,1.8-a*0.5,0);equip.rotation.set(0,0,0);
+        break;
+      case'squat':
+        a=(Math.sin(_t*2.2)*0.5+0.5);
+        body.position.y=-0.2-a*0.35;
+        hipPivot.rotation.x=a*0.8;
+        kneeL.position.y=-0.04-a*0.12;kneeR.position.y=-0.04-a*0.12;
+        equip.visible=true;equip.position.set(0,1.2,0.1);
+        break;
+      case'curl':
+        a=Math.sin(_t*3)*0.5+0.5;
+        shoulderPivotL.rotation.z=0.2;shoulderPivotR.rotation.z=0.2;
+        elbowL.position.y=0.35-a*0.3;elbowR.position.y=0.35-a*0.3;
+        farmL.rotation.z=-1.5+a*1.5;farmR.rotation.z=-1.5+a*1.5;
+        equip.visible=true;equip.scale.set(0.4,0.4,0.4);equip.position.set(0,0.25-a*0.4,0.3);
+        break;
+      case'fly':
+        a=Math.sin(_t*2.5)*0.5+0.5;
+        shoulderPivotL.rotation.z=1.5-a*1.2;shoulderPivotR.rotation.z=1.5-a*1.2;
+        elbowL.rotation.z=-a*1.5;elbowR.rotation.z=-a*1.5;
+        equip.visible=false;
+        break;
+      case'crunch':
+        a=Math.sin(_t*3)*0.4+0.4;
+        body.rotation.x=a*0.5;
+        body.position.y=-0.2;
+        equip.visible=false;
+        break;
+      case'plank':
+        body.rotation.x=1.57;body.position.y=-0.7;body.position.z=0.3;
+        a=Math.sin(_t*1.5)*0.05;
+        hipPivot.rotation.x=a;
+        equip.visible=false;
+        break;
+      case'lunge':
+        a=Math.sin(_t*2)*0.5+0.5;
+        body.position.y=-0.2-a*0.25;
+        hipPivot.rotation.x=a*0.3;
+        ulegL.rotation.x=-a*0.6;ulegR.rotation.x=a*0.3;
+        kneeL.position.y=0.05-a*0.3;kneeR.position.y=0.05;
+        equip.visible=true;equip.position.set(0.15,0.7,0.1);equip.scale.set(0.5,0.5,0.5);
+        break;
+      case'swing':
+        a=Math.sin(_t*3)*0.5+0.5;
+        body.rotation.x=a*0.6;body.position.y=-0.2-a*0.15;
+        hipPivot.rotation.x=a*0.5;
+        shoulderPivotL.rotation.z=0.6+a*0.5;shoulderPivotR.rotation.z=0.6+a*0.5;
+        equip.visible=true;equip.position.set(0,0.3-a*0.3,0.5);equip.rotation.x=-0.4;
+        break;
+      case'carry':
+        a=Math.sin(_t*3)*0.25+0.25;
+        ulegL.rotation.x=a;ulegR.rotation.x=-a;
+        llegL.rotation.x=-a*0.5;llegR.rotation.x=a*0.5;
+        shoulderPivotL.rotation.z=0.3;shoulderPivotR.rotation.z=-0.3;
+        equip.visible=true;equip.position.set(0.35,0.4,0.1);equip.scale.set(0.3,0.3,0.3);
+        break;
+    }
+    requestAnimationFrame(anim);renderer.render(scene,cam);
+  }
+  requestAnimationFrame(anim);
+}
+function _stopFigure(el){
+  var r=el._figRenderer;
+  if(r){r.dispose();if(r.domElement&&r.domElement.parentNode)r.domElement.parentNode.removeChild(r.domElement)}
+  el._figRenderer=null;el._figScene=null;el._figBody=null;
+}
+function gifName(name){
+  // Map Chinese exercise names to English GIF filenames
+  var map={
+    '杠铃卧推':'Barbell-Bench-Press','哑铃卧推':'Dumbbell-Bench-Press','上斜哑铃卧推':'Incline-Dumbbell-Press',
+    '俯卧撑':'Push-Ups','哑铃飞鸟':'Dumbbell-Fly','龙门架夹胸':'Cable-Crossover','双杠臂屈伸':'Dips',
+    '引体向上':'Pull-Ups','杠铃划船':'Barbell-Bent-Over-Row','哑铃划船':'Dumbbell-Row',
+    '高位下拉':'Lat-Pulldown','坐姿划船':'Seated-Cable-Row','面拉':'Face-Pull',
+    '杠铃推举':'Barbell-Shoulder-Press','哑铃侧平举':'Dumbbell-Lateral-Raise','哑铃前平举':'Dumbbell-Front-Raise',
+    '哑铃推举':'Dumbbell-Shoulder-Press','蝴蝶机反向飞鸟':'Reverse-Fly','俯身飞鸟':'Bent-Over-Lateral-Raise',
+    '杠铃深蹲':'Barbell-Squat','哑铃深蹲':'Dumbbell-Squat','腿举':'Leg-Press','罗马尼亚硬拉':'Romanian-Deadlift',
+    '哑铃箭步蹲':'Dumbbell-Lunge','腿弯举':'Leg-Curl','保加利亚分腿蹲':'Bulgarian-Split-Squat','臀推':'Hip-Thrust',
+    '自重深蹲':'Bodyweight-Squat','杠铃弯举':'Barbell-Curl','哑铃弯举':'Dumbbell-Curl','锤式弯举':'Hammer-Curl',
+    '绳索下压':'Triceps-Pushdown','窄距卧推':'Close-Grip-Bench-Press','臂屈伸（三头）':'Overhead-Triceps-Extension',
+    '钻石俯卧撑':'Diamond-Push-Ups','反握下拉':'Reverse-Grip-Pulldown','平板支撑':'Plank','卷腹':'Crunch',
+    '悬垂举腿':'Hanging-Leg-Raise','俄罗斯转体':'Russian-Twist','卷腹机':'Ab-Crunch-Machine','登山跑':'Mountain-Climbers',
+    '侧支撑':'Side-Plank','波比跳':'Burpees','壶铃摆荡':'Kettlebell-Swing','抓举':'Dumbbell-Snatch',
+    'TRX划船':'TRX-Row','推雪橇':'Sled-Push','下斜哑铃卧推':'Decline-Dumbbell-Press','哑铃窄距卧推':'Dumbbell-Squeeze-Press',
+    'T杠划船':'T-Bar-Row','山羊挺身':'Back-Extension','阿诺德推举':'Arnold-Press','杠铃片前平举':'Plate-Front-Raise',
+    '高脚杯深蹲':'Goblet-Squat','单腿臀桥':'Single-Leg-Glute-Bridge','哑铃提踵':'Dumbbell-Calf-Raise',
+    '牧师凳弯举':'Preacher-Curl','仰卧臂屈伸':'Skull-Crusher','弹力带弯举':'Band-Curl',
+    '死虫式':'Dead-Bug','反向卷腹':'Reverse-Crunch','哑铃侧屈':'Dumbbell-Side-Bend',
+    '高翻推举':'Clean-and-Press','哑铃火箭推':'Dumbbell-Thruster','熊爬':'Bear-Crawl',
+    '弹力带划船':'Band-Row','弹力带推举':'Band-Shoulder-Press','弹力带深蹲':'Band-Squat',
+    '弹力带髋外展':'Band-Hip-Abduction','弹力带引体辅助':'Band-Assisted-Pull-Up','哑铃上提':'Upright-Row',
+    '器械推胸':'Chest-Press-Machine','斯万推胸':'Svend-Press','弹力带夹胸':'Band-Chest-Fly','悍马机卧推':'Hammer-Strength-Press',
+    '对握引体向上':'Neutral-Grip-Pull-Up','直臂下压':'Straight-Arm-Pulldown','架上硬拉':'Rack-Pull',
+    '单臂跪姿划船':'One-Arm-Dumbbell-Row','早安体前屈':'Good-Morning','弹力带高位下拉':'Band-Lat-Pulldown',
+    '坐姿哑铃推举':'Seated-Dumbbell-Press','直立划船':'Barbell-Upright-Row','杠铃片环绕':'Plate-Circles',
+    '弹力带侧平举':'Band-Lateral-Raise','器械推举':'Machine-Shoulder-Press','前蹲':'Front-Squat',
+    '哈克深蹲':'Hack-Squat','相扑硬拉':'Sumo-Deadlift','腿伸展':'Leg-Extension','坐姿腿弯举':'Seated-Leg-Curl',
+    '哑铃罗马尼亚硬拉':'Dumbbell-Romanian-Deadlift','弹力带臀桥':'Band-Glute-Bridge',
+    '集中弯举':'Concentration-Curl','上斜哑铃弯举':'Incline-Dumbbell-Curl','双杠臂屈伸三头版':'Triceps-Dip',
+    '窄距俯卧撑':'Close-Grip-Push-Up','弹力带下压':'Band-Pushdown','仰卧抬腿':'Leg-Raise','雨刷式':'Windshield-Wiper',
+    '药球砸地':'Medicine-Ball-Slam','跳绳':'Jump-Rope','哑铃农夫行走':'Farmers-Walk','战绳':'Battle-Ropes',
+    '弹力带早安式':'Band-Good-Morning','器械夹腿':'Seated-Hip-Adduction','器械外展':'Seated-Hip-Abduction','反向飞鸟机':'Reverse-Pec-Deck'
+  };
+  return map[name]||name;
+}
+function _tryGif(el,gname,move){
+  var urls=[
+    'https://fitnessprogramer.com/wp-content/uploads/2021/02/'+gname+'.gif',
+    'https://fitnessprogramer.com/wp-content/uploads/2021/03/'+gname+'.gif',
+    'https://fitnessprogramer.com/wp-content/uploads/2021/04/'+gname+'.gif',
+    'https://fitnessprogramer.com/wp-content/uploads/2022/01/'+gname+'.gif',
+    'https://fitnessprogramer.com/wp-content/uploads/2022/02/'+gname+'.gif',
+  ];
+  var img=document.createElement('img');
+  img.style.cssText='width:64px;height:64px;object-fit:cover;border-radius:6px';
+  img.alt='';
+  var tried=0;
+  function tryNext(){
+    if(tried>=urls.length){img.onerror=function(){el.innerHTML='';_startFigure(el,move)};img.src='';return}
+    img.src=urls[tried];tried++}
+  img.onload=function(){el.innerHTML='';el.appendChild(img)}
+  img.onerror=tryNext;
+  tryNext();
+}
+function figure3D(m,id){
+  _initObserver();var gname=gifName(m||'push');
+  var c='<span class="figure3d" id="fig-'+id+'"></span>';
+  setTimeout(function(){
+    var el=document.getElementById('fig-'+id);
+    if(el){el._figData={move:gname};_figObs.observe(el)}
+  },50);
+  return c;
+}
 
 function updateTimerDisplay(){
   var m=Math.floor(timerRemaining/60),s=timerRemaining%60;
