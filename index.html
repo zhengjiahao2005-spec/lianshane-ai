@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>练啥呢AI - 智能健身计划生成器</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <style>
     
 
@@ -110,6 +111,8 @@
     @keyframes legLunge { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(50deg)} }
     @keyframes legCarry { 0%,100%{transform:rotate(10deg)} 50%{transform:rotate(-10deg)} }
     @keyframes torsoSwing { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(15deg)} }
+
+    .figure3d { width: 64px; height: 64px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.03); display: inline-block; }
 </style>
 </head>
 <body>
@@ -553,23 +556,61 @@ function showPage(name){
   if(name==='generate')refreshPool();
 }
 
-function stickmanSVG(m){var cls=m||"push";return "<span class=\"stickman "+cls+"\"><svg viewBox=\"0 0 56 56\"><circle cx=\"28\" cy=\"8\" r=\"6\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"1.5\"/><line class=\"torso\" x1=\"28\" y1=\"14\" x2=\"28\" y2=\"34\" stroke=\"#64748b\" stroke-width=\"1.5\" stroke-linecap=\"round\"/><g class=\"arm\"><line x1=\"28\" y1=\"18\" x2=\"20\" y2=\"26\" stroke=\"#64748b\" stroke-width=\"1.5\" stroke-linecap=\"round\"/><line x1=\"20\" y1=\"26\" x2=\"14\" y2=\"34\" stroke=\"#94a3b8\" stroke-width=\"1.2\" stroke-linecap=\"round\"/></g><g class=\"leg\"><line x1=\"28\" y1=\"34\" x2=\"20\" y2=\"47\" stroke=\"#64748b\" stroke-width=\"1.2\" stroke-linecap=\"round\"/><line x1=\"20\" y1=\"47\" x2=\"16\" y2=\"54\" stroke=\"#94a3b8\" stroke-width=\"1\" stroke-linecap=\"round\"/><line x1=\"28\" y1=\"34\" x2=\"36\" y2=\"47\" stroke=\"#64748b\" stroke-width=\"1.2\" stroke-linecap=\"round\"/><line x1=\"36\" y1=\"47\" x2=\"40\" y2=\"54\" stroke=\"#94a3b8\" stroke-width=\"1\" stroke-linecap=\"round\"/></g></svg></span>"}
-function renderLibrary(filter){
-  var grid=document.getElementById('library-grid');
-  var allEx=exercises.concat(customExercises);var filtered=filter==='all'?allEx:allEx.filter(function(e){return e.muscle===filter});
-  var html='';
-  for(var i=0;i<filtered.length;i++){
-    var ex=filtered[i];
-    html+='<div class="exercise-card animate-in">'+stickmanSVG(ex.move)+''+(ex.custom?'<div onclick="event.stopPropagation();deleteCustomExercise('+ex.id+')" class="absolute top-2 right-2 text-slate-500 hover:text-red-400 cursor-pointer" title="删除自定义动作"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>':'')+'<div class="flex items-start justify-between mb-1.5"><h4 class="font-semibold text-sm">'+ex.name+'</h4><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span></div><p class="text-xs text-slate-500 mb-2.5">'+ex.desc+'</p><div class="flex gap-1.5 flex-wrap"><span class="chip green">'+muscleNames[ex.muscle]+'</span><span class="chip orange">'+equipNames[ex.equip]+'</span><span class="chip '+(ex.level==='beginner'?'blue':ex.level==='advanced'?'purple':'')+'">'+(ex.level==='beginner'?'初级':ex.level==='intermediate'?'中级':'高级')+'</span></div></div>';
-  }
-  grid.innerHTML=html;
+var figureScenes={};
+function figure3D(m,id){
+  var cls=m||'push';var c='<span class="figure3d" id="fig-'+id+'"></span>';
+  setTimeout(function(){
+    var el=document.getElementById('fig-'+id);
+    if(!el||el.querySelector('canvas'))return;
+    var w=64,h=64;
+    var scene=new THREE.Scene();
+    var cam=new THREE.PerspectiveCamera(45,w/h,0.1,100);
+    cam.position.set(0,1.2,4);cam.lookAt(0,0.8,0);
+    var renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
+    renderer.setSize(w,h);renderer.setPixelRatio(1);
+    el.appendChild(renderer.domElement);
+    var amb=new THREE.AmbientLight(0xffffff,0.6);scene.add(amb);
+    var dir=new THREE.DirectionalLight(0xffffff,0.8);dir.position.set(2,3,3);scene.add(dir);
+    var mat=new THREE.MeshPhongMaterial({color:0x00cc7a,emissive:0x003322,shininess:60});
+    var mat2=new THREE.MeshPhongMaterial({color:0x00aa66,emissive:0x002211,shininess:40});
+    // Build figure
+    var body=new THREE.Group();
+    var head=new THREE.Mesh(new THREE.SphereGeometry(0.22,16,12),mat);head.position.y=1.5;body.add(head);
+    var torso=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.6,8),mat);torso.position.y=1.1;body.add(torso);
+    var upperArmL=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.55,6),mat2);upperArmL.position.set(0.28,1.3,0);body.add(upperArmL);
+    var upperArmR=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.55,6),mat2);upperArmR.position.set(-0.28,1.3,0);body.add(upperArmR);
+    var foreArmL=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.5,6),mat2);foreArmL.position.set(0.28,0.85,0);body.add(foreArmL);
+    var foreArmR=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.5,6),mat2);foreArmR.position.set(-0.28,0.85,0);body.add(foreArmR);
+    var upperLegL=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,0.55,6),mat2);upperLegL.position.set(0.12,0.55,0);body.add(upperLegL);
+    var upperLegR=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,0.55,6),mat2);upperLegR.position.set(-0.12,0.55,0);body.add(upperLegR);
+    var lowerLegL=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.55,6),mat2);lowerLegL.position.set(0.12,0.08,0);body.add(lowerLegL);
+    var lowerLegR=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.55,6),mat2);lowerLegR.position.set(-0.12,0.08,0);body.add(lowerLegR);
+    body.position.y=-0.3;scene.add(body);
+    var time=0;
+    function anim(t){
+      time=t*0.001;
+      var a=0;
+      if(cls==='push'){a=Math.sin(time*3)*0.6;upperArmL.rotation.z=a+0.3;upperArmR.rotation.z=-a+0.3;foreArmL.rotation.z=a*0.5;foreArmR.rotation.z=-a*0.5}
+      else if(cls==='pull_down'){a=Math.sin(time*3)*0.5;upperArmL.rotation.z=-1.5+a;upperArmR.rotation.z=-1.5+a;foreArmL.rotation.z=-0.5+a*0.5;foreArmR.rotation.z=-0.5+a*0.5}
+      else if(cls==='pull_row'){a=Math.sin(time*3)*0.3;upperArmL.rotation.z=1.5+a;upperArmR.rotation.z=1.5+a;foreArmL.rotation.z=0.8+a;foreArmR.rotation.z=0.8+a}
+      else if(cls==='press'){a=Math.sin(time*3)*0.5;upperArmL.rotation.z=-2.2+a;upperArmR.rotation.z=-2.2+a;foreArmL.rotation.z=-0.5+a*0.3;foreArmR.rotation.z=-0.5+a*0.3}
+      else if(cls==='squat'){a=Math.sin(time*2.5)*0.5;body.position.y=-0.3-Math.abs(a)*0.3;upperLegL.rotation.x=a;upperLegR.rotation.x=-a;lowerLegL.rotation.x=-a*0.5;lowerLegR.rotation.x=a*0.5}
+      else if(cls==='curl'){a=Math.sin(time*3)*0.8;upperArmL.rotation.z=0.3;upperArmR.rotation.z=0.3;foreArmL.rotation.z=-1.5+a*0.7;foreArmR.rotation.z=-1.5+a*0.7}
+      else if(cls==='fly'){a=Math.sin(time*2.5)*0.8;upperArmL.rotation.z=1.8-a;upperArmR.rotation.z=1.8-a}
+      else if(cls==='crunch'){a=Math.sin(time*3)*0.3;torso.rotation.x=a}
+      else if(cls==='plank'){body.rotation.x=1.5;body.position.y=-0.6}
+      else if(cls==='lunge'){a=Math.sin(time*2)*0.6;upperLegL.rotation.x=a;upperLegR.rotation.x=-a*0.2;lowerLegL.rotation.x=Math.max(0,a)*0.3;lowerLegR.rotation.x=-a*0.3}
+      else if(cls==='swing'){a=Math.sin(time*3)*0.3;body.rotation.x=a;upperArmL.rotation.z=1+a;upperArmR.rotation.z=1+a}
+      else if(cls==='carry'){a=Math.sin(time*3)*0.3;upperLegL.rotation.x=a;upperLegR.rotation.x=-a;upperArmL.rotation.z=0.3;upperArmR.rotation.z=-0.3}
+      requestAnimationFrame(anim);renderer.render(scene,cam);
+    }
+    requestAnimationFrame(anim);
+  },100);
+  return c;
 }
-function filterLibrary(filter,el){
-  var btns=document.querySelectorAll('#page-library .tab-btn');
-  for(var i=0;i<btns.length;i++)btns[i].classList.remove('active');
-  if(el)el.classList.add('active');
-  renderLibrary(filter);
-}
+var _figId=0;
+function stickmanSVG(m){_figId++;return figure3D(m,_figId);}
+
 
 var timerTotal=60,timerRemaining=60,timerInterval=null,timerRunning=false;
 function updateTimerDisplay(){
