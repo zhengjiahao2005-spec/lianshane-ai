@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>练啥呢AI - 智能健身计划生成器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+
+    body { background: #0a0a0f; color: #e2e8f0; min-height: 100vh; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1a1a2e; }
+    ::-webkit-scrollbar-thumb { background: #2d2d4a; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3d3d5c; }
+
+    .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); }
+    .glass-card:hover { border-color: rgba(255,255,255,0.12); }
+
+    .btn-primary { background: linear-gradient(135deg, #00ff87 0%, #00c96d 100%); color: #0a0a0f; font-weight: 600; transition: all 0.2s; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(0,255,135,0.25); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; transition: all 0.2s; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+
+    .nav-link { color: #94a3b8; transition: color 0.2s; cursor: pointer; font-weight: 500; }
+    .nav-link:hover { color: #00ff87; }
+    .nav-link.active { color: #00ff87; }
+
+    .tab-btn { padding: 6px 16px; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s; color: #94a3b8; background: none; border: none; }
+    .tab-btn:hover { color: #e2e8f0; background: rgba(255,255,255,0.05); }
+    .tab-btn.active { background: rgba(0,255,135,0.12); color: #00ff87; }
+
+    .form-select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; width: 100%; outline: none; transition: border-color 0.2s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    .form-select:focus { border-color: #00ff87; }
+
+    .exercise-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; transition: all 0.2s; cursor: default; position: relative; }
+    .exercise-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); transform: translateY(-2px); }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 20px rgba(0,255,135,0.1); } 50% { box-shadow: 0 0 35px rgba(0,255,135,0.3); } }
+    @keyframes checkPop { 0% { transform: scale(1); } 30% { transform: scale(1.3); } 100% { transform: scale(1); } }
+    .animate-in { animation: fadeInUp 0.4s ease-out both; }
+    .slide-down { animation: slideDown 0.3s ease-out both; }
+    .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+
+    .timer-ring { width: 220px; height: 220px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 700; position: relative; }
+    .timer-ring::before { content: ''; position: absolute; inset: -4px; border-radius: 50%; background: conic-gradient(#00ff87 var(--progress,0%), rgba(255,255,255,0.06) 0%); mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px)); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px)); }
+    @media (max-width: 640px) { .timer-ring { width: 180px; height: 180px; font-size: 2.8rem; } .timer-ring::before { inset: -3px; } }
+
+    .page-section { display: none; }
+    .page-section.active { display: block; animation: fadeInUp 0.35s ease-out; }
+
+    .chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+    .chip.default { background: rgba(255,255,255,0.06); color: #94a3b8; }
+    .chip.green { background: rgba(0,255,135,0.1); color: #00ff87; }
+    .chip.orange { background: rgba(255,107,53,0.1); color: #ff6b35; }
+    .chip.blue { background: rgba(59,130,246,0.1); color: #3b82f6; }
+    .chip.purple { background: rgba(168,85,247,0.1); color: #a855f7; }
+
+    .result-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(255,255,255,0.03); border-radius: 10px; border-left: 3px solid #00ff87; transition: all 0.2s; }
+    .result-item:hover { background: rgba(255,255,255,0.06); }
+    .result-item .order-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(0,255,135,0.12); color: #00ff87; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; }
+
+    .pool-checkbox { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; cursor: pointer; transition: all 0.2s; user-select: none; }
+    .pool-checkbox:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+    .pool-checkbox.selected { background: rgba(0,255,135,0.06); border-color: rgba(0,255,135,0.25); }
+    .pool-checkbox .check-box { width: 22px; height: 22px; border: 2px solid rgba(255,255,255,0.2); border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; transition: all 0.2s; }
+    .pool-checkbox.selected .check-box { background: #00ff87; border-color: #00ff87; animation: checkPop 0.25s ease-out; }
+    .pool-checkbox.selected .check-box::after { content: ''; width: 6px; height: 11px; border: solid #0a0a0f; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-top: -1px; }
+
+    #pool-count.warning { color: #ff6b35; }
+    #pool-count.ok { color: #00ff87; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="sticky top-0 z-50 backdrop-blur-xl bg-[#0a0a0f]/80 border-b border-white/[0.04]">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('home')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff87" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5"/><path d="M6.5 17.5 17.5 6.5"/><circle cx="12" cy="12" r="9"/></svg>
+        <span class="font-bold text-lg tracking-tight">练啥呢<span class="text-[#00ff87]">AI</span></span>
+      </div>
+      <nav class="flex items-center gap-5 text-sm">
+        <span class="nav-link active" data-page="home" onclick="showPage('home')">首页</span>
+        <span class="nav-link" data-page="generate" onclick="showPage('generate')">生成计划</span>
+        <span class="nav-link" data-page="library" onclick="showPage('library')">动作库</span>
+        <span class="nav-link" data-page="timer" onclick="showPage('timer')">计时器</span>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6">
+
+    <!-- HOME -->
+    <section id="page-home" class="page-section active">
+      <div class="text-center py-10 md:py-16 animate-in">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#00ff87]/10 text-[#00ff87] text-sm font-medium mb-6">
+          <span class="w-2 h-2 bg-[#00ff87] rounded-full pulse-glow"></span>
+          你的专属 AI 健身教练
+        </div>
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">今天<br class="sm:hidden" /><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00ff87] to-[#00c96d]">练啥呢</span>？</h1>
+        <p class="mt-4 text-lg text-slate-400 max-w-lg mx-auto">选条件立即展示全部匹配动作，想练几个勾几个，完全由你决定。</p>
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+          <button onclick="showPage('generate')" class="btn-primary px-7 py-3 rounded-xl text-base inline-flex items-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 12h18"/></svg>开始生成计划</button>
+          <button onclick="showPage('library')" class="btn-secondary px-7 py-3 rounded-xl text-base inline-flex items-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5A2.5 2.5 0 0 1 4 19.5Z"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>浏览动作库</button>
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-4 mt-8">
+        <div class="glass-card rounded-2xl p-6 text-center animate-in" style="animation-delay:0.1s"><div class="w-12 h-12 rounded-xl bg-[#00ff87]/10 flex items-center justify-center mx-auto mb-3"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><h3 class="font-semibold text-base mb-1">AI 智能匹配</h3><p class="text-sm text-slate-500">根据肌群、难度和器械，秒级筛选全部可用动作</p></div>
+        <div class="glass-card rounded-2xl p-6 text-center animate-in" style="animation-delay:0.2s"><div class="w-12 h-12 rounded-xl bg-[#ff6b35]/10 flex items-center justify-center mx-auto mb-3"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff6b35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h3 class="font-semibold text-base mb-1">组间计时器</h3><p class="text-sm text-slate-500">内置休息计时，精确控制训练节奏</p></div>
+        <div class="glass-card rounded-2xl p-6 text-center animate-in" style="animation-delay:0.3s"><div class="w-12 h-12 rounded-xl bg-[#3b82f6]/10 flex items-center justify-center mx-auto mb-3"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg></div><h3 class="font-semibold text-base mb-1">72 个动作库</h3><p class="text-sm text-slate-500">涵盖全身各部位，自由筛选，自主勾选</p></div>
+      </div>
+      <div class="glass-card rounded-2xl p-6 mt-8 animate-in" style="animation-delay:0.4s">
+        <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 12h18"/></svg>快速生成</h2>
+        <div class="grid sm:grid-cols-4 gap-3">
+          <select id="quick-muscle" class="form-select"><option value="fullbody">全身训练</option><option value="chest">胸部</option><option value="back">背部</option><option value="shoulders">肩部</option><option value="legs">腿部</option><option value="arms">手臂</option><option value="core">核心</option></select>
+          <select id="quick-level" class="form-select"><option value="beginner">初级</option><option value="intermediate" selected>中级</option><option value="advanced">高级</option></select>
+          <select id="quick-equip" class="form-select"><option value="bodyweight">自重</option><option value="dumbbell" selected>哑铃</option><option value="barbell">杠铃</option><option value="band">弹力带</option><option value="gym">健身房</option></select>
+          <button onclick="quickGenerate()" class="btn-primary rounded-xl py-2.5 text-sm font-bold">去挑选动作</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- GENERATE -->
+    <section id="page-generate" class="page-section">
+      <div class="animate-in"><h2 class="text-2xl font-bold mb-1">生成训练计划</h2><p class="text-slate-500 text-sm mb-6">设好条件，下方自动展示全部匹配动作，勾上要练的点确认即可</p></div>
+
+      <!-- Filters row -->
+      <div class="glass-card rounded-2xl p-5 mb-5">
+        <div class="grid sm:grid-cols-4 gap-3">
+          <div><label class="block text-xs font-medium mb-1 text-slate-400">目标肌群</label><select id="gen-muscle" class="form-select" onchange="onFormChanged()"><option value="fullbody">全身训练</option><option value="chest">胸部</option><option value="back">背部</option><option value="shoulders">肩部</option><option value="legs">腿部</option><option value="arms">手臂</option><option value="core">核心</option></select></div>
+          <div><label class="block text-xs font-medium mb-1 text-slate-400">训练水平</label><select id="gen-level" class="form-select" onchange="onFormChanged()"><option value="beginner">初级</option><option value="intermediate" selected>中级</option><option value="advanced">高级</option></select></div>
+          <div><label class="block text-xs font-medium mb-1 text-slate-400">可用器械</label><select id="gen-equip" class="form-select" onchange="onFormChanged()"><option value="bodyweight">自重</option><option value="dumbbell" selected>哑铃</option><option value="barbell">杠铃</option><option value="band">弹力带</option><option value="gym">健身房</option></select></div>
+          <div class="flex items-end gap-2">
+            <div class="flex-1"><label class="block text-xs font-medium mb-1 text-slate-400">练几个动作</label><input id="gen-count" type="number" min="1" max="20" value="5" class="form-select text-center" style="padding-right:14px;background-image:none" onchange="onFormChanged()" /></div>
+            <button onclick="aiPick()" class="btn-primary rounded-lg px-4 py-2.5 text-sm font-semibold whitespace-nowrap">AI推荐</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pool header -->
+      <div id="pool-header" class="hidden glass-card rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div><h3 class="font-bold text-lg" id="pool-title">胸部 · 中级 · 哑铃</h3><p class="text-sm text-slate-500" id="pool-subtitle">10 个匹配动作，勾选你想练的</p></div>
+        <div class="flex gap-2"><button onclick="selectAllInPool()" class="btn-secondary rounded-lg px-3 py-1.5 text-xs">全选</button><button onclick="deselectAllInPool()" class="btn-secondary rounded-lg px-3 py-1.5 text-xs">清空</button></div>
+      </div>
+
+      <!-- Pool list -->
+      <div id="pool-exercises" class="space-y-1.5 mb-3"></div>
+
+      <!-- Pool bottom bar -->
+      <div id="pool-bottom" class="hidden glass-card rounded-2xl p-4 flex items-center gap-3">
+        <span id="pool-count" class="text-sm font-medium">已选 0 个</span>
+        <span class="text-xs text-slate-500 flex-1">觉得够了就点确认</span>
+        <button onclick="confirmSelection()" class="btn-primary rounded-xl px-6 py-2.5 text-sm font-bold">确认生成</button>
+      </div>
+
+      <!-- Placeholder (shown before first selection) -->
+      <div id="plan-placeholder" class="glass-card rounded-2xl p-10 text-center">
+        <div class="w-20 h-20 rounded-2xl bg-[#00ff87]/5 flex items-center justify-center mx-auto mb-4"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00ff87" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5"/><path d="M6.5 17.5 17.5 6.5"/><circle cx="12" cy="12" r="9"/></svg></div>
+        <h3 class="text-lg font-semibold mb-1">选择你的训练条件</h3>
+        <p class="text-sm text-slate-500">上方选好肌群、水平、器械和动作数量，下方立即列出所有匹配动作供你自由勾选</p>
+      </div>
+
+      <!-- Final Plan -->
+      <div id="plan-result" class="hidden space-y-4">
+        <div class="glass-card rounded-2xl p-5 flex flex-wrap items-center justify-between gap-3">
+          <div><h3 class="font-bold text-lg" id="plan-title">胸部训练 · 中级</h3><p class="text-sm text-slate-500" id="plan-summary">4 个动作 · 约 30 分钟 · 哑铃</p></div>
+          <button onclick="backToPool()" class="btn-secondary rounded-lg px-4 py-2 text-sm inline-flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>返回挑选</button>
+        </div>
+        <div id="plan-exercises" class="space-y-2"></div>
+        <div class="glass-card rounded-2xl p-5 mt-4"><h4 class="font-semibold text-sm mb-3 text-slate-300 flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>训练建议</h4><ul id="plan-tips" class="text-sm text-slate-400 space-y-1.5 list-disc list-inside"></ul></div>
+      </div>
+    </section>
+
+    <!-- LIBRARY -->
+    <section id="page-library" class="page-section">
+      <div class="animate-in"><h2 class="text-2xl font-bold mb-1">动作库</h2><p class="text-slate-500 text-sm mb-6">浏览 72 个健身动作，了解正确的训练姿势</p></div>
+      <div class="flex flex-wrap gap-2 mb-6">
+        <span class="tab-btn active" data-target="all" onclick="filterLibrary('all',this)">全部</span>
+        <span class="tab-btn" data-target="chest" onclick="filterLibrary('chest',this)">胸部</span>
+        <span class="tab-btn" data-target="back" onclick="filterLibrary('back',this)">背部</span>
+        <span class="tab-btn" data-target="shoulders" onclick="filterLibrary('shoulders',this)">肩部</span>
+        <span class="tab-btn" data-target="legs" onclick="filterLibrary('legs',this)">腿部</span>
+        <span class="tab-btn" data-target="arms" onclick="filterLibrary('arms',this)">手臂</span>
+        <span class="tab-btn" data-target="core" onclick="filterLibrary('core',this)">核心</span>
+        <span class="tab-btn" data-target="fullbody" onclick="filterLibrary('fullbody',this)">全身</span>
+      </div>
+      <button onclick="openAddModal()" class="btn-secondary rounded-lg px-4 py-2 text-sm inline-flex items-center gap-1.5 ml-auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 12h18"/></svg>添加动作</button>
+      <div id="library-grid" class="grid sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+    </section>
+
+        <!-- Custom Exercise Modal -->
+    <div id="add-exercise-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)">
+      <div class="glass-card rounded-2xl p-6 w-full max-w-md mx-4 animate-in">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="font-bold text-lg">添加自定义动作</h3>
+          <button onclick="closeAddModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+        </div>
+        <div class="space-y-4">
+          <div><label class="block text-xs font-medium mb-1 text-slate-400">动作名称</label><input id="custom-name" class="form-select" style="padding-right:14px;background-image:none" placeholder="例如：俯身单臂划船" /></div>
+          <div class="grid grid-cols-3 gap-3">
+            <div><label class="block text-xs font-medium mb-1 text-slate-400">目标肌群</label><select id="custom-muscle" class="form-select"><option value="chest">胸部</option><option value="back">背部</option><option value="shoulders">肩部</option><option value="legs">腿部</option><option value="arms">手臂</option><option value="core">核心</option><option value="fullbody">全身</option></select></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-400">器械</label><select id="custom-equip" class="form-select"><option value="bodyweight">自重</option><option value="dumbbell">哑铃</option><option value="barbell">杠铃</option><option value="band">弹力带</option><option value="gym">健身房</option></select></div>
+            <div><label class="block text-xs font-medium mb-1 text-slate-400">难度</label><select id="custom-level" class="form-select"><option value="beginner">初级</option><option value="intermediate">中级</option><option value="advanced">高级</option></select></div>
+          </div>
+          <div><label class="block text-xs font-medium mb-1 text-slate-400">动作描述</label><textarea id="custom-desc" class="form-select" style="padding-right:14px;background-image:none;resize:vertical;min-height:60px" placeholder="描述动作要领和注意事项"></textarea></div>
+          <div><label class="block text-xs font-medium mb-1 text-slate-400">推荐组数次数</label><input id="custom-sets" class="form-select" style="padding-right:14px;background-image:none" placeholder="例如：4×10-12" /></div>
+          <div class="flex gap-3 pt-1">
+            <button onclick="saveCustomExercise()" class="btn-primary flex-1 rounded-xl py-2.5 text-sm font-bold">保存动作</button>
+            <button onclick="closeAddModal()" class="btn-secondary rounded-xl px-6 py-2.5 text-sm">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- TIMER -->
+    <section id="page-timer" class="page-section">
+      <div class="animate-in"><h2 class="text-2xl font-bold mb-1">组间计时器</h2><p class="text-slate-500 text-sm mb-6">精确控制休息时间，保持最佳训练节奏</p></div>
+      <div class="glass-card rounded-2xl p-8 max-w-md mx-auto text-center">
+        <div class="timer-ring mx-auto" id="timer-ring" style="--progress:0%"><span id="timer-display">01:00</span></div>
+        <p id="timer-state" class="mt-4 text-sm text-slate-500">准备就绪</p>
+        <div class="flex justify-center gap-2 mt-6"><button onclick="setTimer(30)" class="btn-secondary rounded-lg px-3 py-1.5 text-sm">30s</button><button onclick="setTimer(60)" class="btn-secondary rounded-lg px-3 py-1.5 text-sm">60s</button><button onclick="setTimer(90)" class="btn-secondary rounded-lg px-3 py-1.5 text-sm">90s</button><button onclick="setTimer(120)" class="btn-secondary rounded-lg px-3 py-1.5 text-sm">120s</button></div>
+        <div class="flex items-center justify-center gap-2 mt-4"><input id="timer-custom" type="number" min="10" max="300" placeholder="自定义秒数" class="form-select w-32 text-center" /><button onclick="setCustomTimer()" class="btn-secondary rounded-lg px-3 py-1.5 text-sm">设定</button></div>
+        <div class="flex justify-center gap-3 mt-6"><button id="timer-start-btn" onclick="startTimer()" class="btn-primary rounded-xl px-8 py-3 font-bold text-base inline-flex items-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>开始</button><button onclick="pauseTimer()" class="btn-secondary rounded-xl px-6 py-3 text-base">暂停</button><button onclick="resetTimer()" class="btn-secondary rounded-xl px-6 py-3 text-base">重置</button></div>
+      </div>
+    </section>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-[#1a1a2e] border border-white/10 text-sm shadow-2xl backdrop-blur-xl hidden slide-down"></div>
+  </main>
+
+  <footer class="max-w-5xl mx-auto px-4 py-8 mt-8 border-t border-white/[0.04] text-center text-xs text-slate-600">练啥呢AI · 你的智能健身伙伴 · 所有计划仅供参考，训练前请适当热身</footer>
+
+<script>
+var exercises=[
+  {id:1, name:'杠铃卧推',muscle:'chest',equip:'barbell',level:'intermediate',desc:'仰卧卧推凳，双手握杠铃杆，缓慢下放至胸部后推起。',sets:'4×8-12'},
+  {id:2, name:'哑铃卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'仰卧，双手持哑铃于胸侧，向上推起至手臂伸直。',sets:'4×8-12'},
+  {id:3, name:'上斜哑铃卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'上斜凳30-45度，双手持哑铃推起，侧重上胸。',sets:'4×8-12'},
+  {id:4, name:'俯卧撑',muscle:'chest',equip:'bodyweight',level:'beginner',desc:'双手撑地略宽于肩，身体呈直线，屈肘下放身体后推起。',sets:'3×12-20'},
+  {id:5, name:'哑铃飞鸟',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'仰卧，双手持哑铃于胸前，肘微屈向两侧打开再合拢。',sets:'4×10-15'},
+  {id:6, name:'龙门架夹胸',muscle:'chest',equip:'gym',level:'intermediate',desc:'双手握龙门架绳索把手，站于中间，向前下方夹拢。',sets:'4×12-15'},
+  {id:7, name:'双杠臂屈伸',muscle:'chest',equip:'bodyweight',level:'advanced',desc:'双手撑双杠，身体前倾，屈肘下放身体后撑起。',sets:'3×8-12'},
+  {id:8, name:'引体向上',muscle:'back',equip:'bodyweight',level:'advanced',desc:'双手宽握单杠，身体悬垂，背阔肌发力拉起身体至下巴过杠。',sets:'4×6-12'},
+  {id:9, name:'杠铃划船',muscle:'back',equip:'barbell',level:'intermediate',desc:'俯身至躯干与地面约45度，正握杠铃沿大腿上拉至下腹。',sets:'4×8-12'},
+  {id:10,name:'哑铃划船',muscle:'back',equip:'dumbbell',level:'intermediate',desc:'单膝跪凳，另一手持哑铃，背部挺直向后上方拉。',sets:'4×10-12'},
+  {id:11,name:'高位下拉',muscle:'back',equip:'gym',level:'beginner',desc:'坐于高位下拉机，双手宽握横杆，下拉至上胸位置。',sets:'4×10-12'},
+  {id:12,name:'坐姿划船',muscle:'back',equip:'gym',level:'beginner',desc:'坐于划船机，双手握把手，向后拉至腹部同时挺胸。',sets:'4×10-12'},
+  {id:13,name:'面拉',muscle:'back',equip:'band',level:'intermediate',desc:'双手握住弹力带两端，向面部方向拉开，收紧肩胛骨。',sets:'3×15'},
+  {id:14,name:'杠铃推举',muscle:'shoulders',equip:'barbell',level:'intermediate',desc:'站立，杠铃置于锁骨位，向上推举至头顶手臂伸直。',sets:'4×8-10'},
+  {id:15,name:'哑铃侧平举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'站立双手持哑铃于体侧，向两侧平举至水平位。',sets:'4×12-15'},
+  {id:16,name:'哑铃前平举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'站立双手持哑铃于大腿前，交替或同时向前平举至水平。',sets:'3×12-15'},
+  {id:17,name:'哑铃推举',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'坐姿或站姿，双手持哑铃于肩侧，向上推举至头顶。',sets:'4×8-12'},
+  {id:18,name:'蝴蝶机反向飞鸟',muscle:'shoulders',equip:'gym',level:'intermediate',desc:'面向蝴蝶机坐，双手握把手向后展开，收紧三角肌后束。',sets:'4×12-15'},
+  {id:19,name:'俯身飞鸟',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'俯身至躯干近水平，双手持哑铃向两侧平举。',sets:'3×12-15'},
+  {id:20,name:'杠铃深蹲',muscle:'legs',equip:'barbell',level:'intermediate',desc:'杠铃置于斜方肌上，下蹲至大腿与地面平行或更低，站起。',sets:'4×8-12'},
+  {id:21,name:'哑铃深蹲',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃于肩侧或体侧，下蹲至大腿与地面平行后站起。',sets:'4×10-15'},
+  {id:22,name:'腿举',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于腿举机，双脚踩踏板，屈膝至90度后蹬起。',sets:'4×10-12'},
+  {id:23,name:'罗马尼亚硬拉',muscle:'legs',equip:'barbell',level:'intermediate',desc:'俯身握杠铃，背部挺直，臀部后移，杠铃沿小腿下放至小腿中段。',sets:'4×8-12'},
+  {id:24,name:'哑铃箭步蹲',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃于体侧，向前跨步下蹲至双膝均呈90度。',sets:'3×10-12每侧'},
+  {id:25,name:'腿弯举',muscle:'legs',equip:'gym',level:'beginner',desc:'俯卧于腿弯举机，脚跟勾住滚轴，弯举至最大幅度。',sets:'4×12-15'},
+  {id:26,name:'保加利亚分腿蹲',muscle:'legs',equip:'dumbbell',level:'intermediate',desc:'后脚置于凳面，前腿下蹲至大腿平行地面，手持哑铃。',sets:'3×10-12每侧'},
+  {id:27,name:'臀推',muscle:'legs',equip:'barbell',level:'intermediate',desc:'上背靠凳，杠铃置于髋部，臀部发力向上推起。',sets:'4×12-15'},
+  {id:28,name:'自重深蹲',muscle:'legs',equip:'bodyweight',level:'beginner',desc:'站立与肩同宽，下蹲至大腿与地面平行，手臂前伸保持平衡。',sets:'3×15-20'},
+  {id:29,name:'杠铃弯举',muscle:'arms',equip:'barbell',level:'intermediate',desc:'站立，双手反握杠铃，上臂固定，弯举杠铃至肩前。',sets:'4×10-12'},
+  {id:30,name:'哑铃弯举',muscle:'arms',equip:'dumbbell',level:'beginner',desc:'站立或坐姿，双手持哑铃交替或同时弯举。',sets:'4×10-12'},
+  {id:31,name:'锤式弯举',muscle:'arms',equip:'dumbbell',level:'beginner',desc:'站立，双手持哑铃对握（掌心相对），弯举至肩前。',sets:'3×10-12'},
+  {id:32,name:'绳索下压',muscle:'arms',equip:'gym',level:'intermediate',desc:'站于龙门架旁，双手握绳索下压至手臂伸直，固定上臂。',sets:'4×12-15'},
+  {id:33,name:'窄距卧推',muscle:'arms',equip:'barbell',level:'intermediate',desc:'仰卧窄握杠铃，下放至胸，推起至手臂伸直，侧重三头。',sets:'4×8-12'},
+  {id:34,name:'臂屈伸（三头）',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'坐姿单手持哑铃于头后，屈肘下放后伸直手臂。',sets:'3×10-12每侧'},
+  {id:35,name:'钻石俯卧撑',muscle:'arms',equip:'bodyweight',level:'intermediate',desc:'双手呈菱形置于胸下，屈肘下放身体，侧重肱三头肌。',sets:'3×10-15'},
+  {id:36,name:'反握下拉',muscle:'arms',equip:'gym',level:'intermediate',desc:'双手反握横杆下拉至胸，侧重肱二头肌。',sets:'3×10-12'},
+  {id:37,name:'平板支撑',muscle:'core',equip:'bodyweight',level:'beginner',desc:'前臂撑地，身体呈直线，收紧核心保持不动。',sets:'3×30-60s'},
+  {id:38,name:'卷腹',muscle:'core',equip:'bodyweight',level:'beginner',desc:'仰卧屈膝，双手轻触耳侧，卷起上背部离地。',sets:'3×15-20'},
+  {id:39,name:'悬垂举腿',muscle:'core',equip:'bodyweight',level:'advanced',desc:'悬吊于单杠，核心发力将双腿向上卷起至水平或更高。',sets:'3×10-15'},
+  {id:40,name:'俄罗斯转体',muscle:'core',equip:'dumbbell',level:'intermediate',desc:'坐姿双脚离地，双手持哑铃片或徒手左右转体。',sets:'3×12-15每侧'},
+  {id:41,name:'卷腹机',muscle:'core',equip:'gym',level:'beginner',desc:'坐于卷腹机，双手握把手，腹部发力向下卷曲。',sets:'4×12-15'},
+  {id:42,name:'登山跑',muscle:'core',equip:'bodyweight',level:'beginner',desc:'平板支撑姿势，交替将膝盖拉向胸部，保持躯干稳定。',sets:'3×20-30'},
+  {id:43,name:'侧支撑',muscle:'core',equip:'bodyweight',level:'intermediate',desc:'侧卧单肘撑地，身体呈直线，保持稳定。',sets:'3×20-40s每侧'},
+  {id:44,name:'波比跳',muscle:'fullbody',equip:'bodyweight',level:'intermediate',desc:'下蹲→双手撑地→双腿后跳成平板→收回→跳起。',sets:'3×10-15'},
+  {id:45,name:'壶铃摆荡',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'双手持哑铃（代替壶铃）于腿间，臀部发力摆荡至胸前。',sets:'4×15-20'},
+  {id:46,name:'抓举',muscle:'fullbody',equip:'dumbbell',level:'advanced',desc:'下蹲持哑铃于两腿间，爆发力将哑铃从腿间举过头顶。',sets:'3×8-10每侧'},
+  {id:47,name:'TRX划船',muscle:'fullbody',equip:'bodyweight',level:'intermediate',desc:'双手握TRX带，身体后倾，背部发力拉向胸部。',sets:'3×12-15'},
+  {id:48,name:'推雪橇',muscle:'fullbody',equip:'gym',level:'intermediate',desc:'双手握雪橇推杆，躯干前倾，快速向前推动。',sets:'3×30m'},
+  {id:49,name:'下斜哑铃卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'下斜凳上仰卧，双手持哑铃推起，侧重下胸。',sets:'4×8-12'},
+  {id:50,name:'哑铃窄距卧推',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'仰卧双手持哑铃并拢于胸前推起，侧重胸中缝。',sets:'3×10-12'},
+  {id:51,name:'T杠划船',muscle:'back',equip:'barbell',level:'intermediate',desc:'双腿跨T杠，俯身握把手向腹部拉起。',sets:'4×8-12'},
+  {id:52,name:'山羊挺身',muscle:'back',equip:'bodyweight',level:'beginner',desc:'俯卧于罗马椅上，身体下弯后挺身至躯干与腿呈直线。',sets:'3×12-15'},
+  {id:53,name:'阿诺德推举',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'坐姿双手持哑铃于胸前，掌心朝自己，推举同时旋转手腕。',sets:'3×8-12'},
+  {id:54,name:'杠铃片前平举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'双手持杠铃片或一片哑铃，向前平举至肩高。',sets:'3×12-15'},
+  {id:55,name:'高脚杯深蹲',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃一端于胸前，下蹲至大腿平行地面。',sets:'3×10-15'},
+  {id:56,name:'单腿臀桥',muscle:'legs',equip:'bodyweight',level:'beginner',desc:'仰卧单腿屈膝踩地，另一腿伸直，臀部发力上顶。',sets:'3×12-15每侧'},
+  {id:57,name:'哑铃提踵',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'站立手持哑铃，前脚掌踩台阶边缘，提踵至最高点。',sets:'4×15-20'},
+  {id:58,name:'牧师凳弯举',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'坐于牧师凳，手臂置于托板上，弯举哑铃。',sets:'3×10-12'},
+  {id:59,name:'仰卧臂屈伸',muscle:'arms',equip:'barbell',level:'intermediate',desc:'仰卧双手窄握杠铃，屈肘下放至头后再推起。',sets:'3×10-12'},
+  {id:60,name:'弹力带弯举',muscle:'arms',equip:'band',level:'beginner',desc:'双脚踩住弹力带中点，双手握两端弯举。',sets:'3×12-15'},
+  {id:61,name:'死虫式',muscle:'core',equip:'bodyweight',level:'beginner',desc:'仰卧四肢朝天，核心收紧缓慢交替伸展对侧手脚。',sets:'3×10-12每侧'},
+  {id:62,name:'反向卷腹',muscle:'core',equip:'bodyweight',level:'intermediate',desc:'仰卧双手置于体侧，将双腿和臀部向上卷起。',sets:'3×12-15'},
+  {id:63,name:'哑铃侧屈',muscle:'core',equip:'dumbbell',level:'beginner',desc:'站立单手持哑铃于体侧，向持哑铃侧屈体再还原。',sets:'3×12-15每侧'},
+  {id:64,name:'高翻推举',muscle:'fullbody',equip:'barbell',level:'advanced',desc:'爆发力将杠铃从地面翻至锁骨位后推举过头。',sets:'4×5-8'},
+  {id:65,name:'哑铃火箭推',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'手持哑铃于肩侧下蹲，站起时顺势将哑铃推过头顶。',sets:'3×10-12'},
+  {id:66,name:'熊爬',muscle:'fullbody',equip:'bodyweight',level:'intermediate',desc:'四肢着地，膝盖离地，对侧手脚交替向前爬行。',sets:'3×20m'},
+  {id:67,name:'弹力带划船',muscle:'back',equip:'band',level:'beginner',desc:'坐姿双脚抵住弹力带中部，双手握带拉向腹部。',sets:'3×15'},
+  {id:68,name:'弹力带推举',muscle:'shoulders',equip:'band',level:'beginner',desc:'站姿双脚踩住弹力带中部，双手握两端向上推举。',sets:'3×12-15'},
+  {id:69,name:'弹力带深蹲',muscle:'legs',equip:'band',level:'beginner',desc:'双脚踩住弹力带中部于肩宽，双手握端于肩前下蹲。',sets:'3×15'},
+  {id:70,name:'弹力带髋外展',muscle:'legs',equip:'band',level:'beginner',desc:'弹力带套于脚踝上方，侧向行走或站姿外展腿。',sets:'3×15每侧'},
+  {id:71,name:'弹力带引体辅助',muscle:'back',equip:'band',level:'beginner',desc:'将弹力带挂于单杠上，单膝或双脚踩带协助引体向上。',sets:'3×8-12'},
+  {id:72,name:'哑铃上提',muscle:'shoulders',equip:'dumbbell',level:'intermediate',desc:'站立双手持哑铃于大腿前，耸肩提拉至下颌高度。',sets:'3×10-12'},
+];
+  {id:73,name:'器械推胸',muscle:'chest',equip:'gym',level:'beginner',desc:'坐于器械推胸机，双手握把手向前方推起至手臂伸直。',sets:'4×10-12'},
+  {id:74,name:'斯万推胸',muscle:'chest',equip:'dumbbell',level:'intermediate',desc:'双手夹住一片哑铃于胸前，向前推出并夹紧胸肌。',sets:'3×12-15'},
+  {id:75,name:'弹力带夹胸',muscle:'chest',equip:'band',level:'beginner',desc:'弹力带固定于身后，双手握带向前夹胸至交叉。',sets:'3×15'},
+  {id:76,name:'悍马机卧推',muscle:'chest',equip:'gym',level:'intermediate',desc:'坐于悍马卧推机，单臂或双臂向前推起。',sets:'4×10-12'},
+  {id:77,name:'对握引体向上',muscle:'back',equip:'bodyweight',level:'intermediate',desc:'双手对握单杠（掌心相对），拉起身体至下巴过杠。',sets:'4×6-12'},
+  {id:78,name:'直臂下压',muscle:'back',equip:'gym',level:'beginner',desc:'站于龙门架前，双手握直杆，直臂下压至大腿前。',sets:'4×12-15'},
+  {id:79,name:'架上硬拉',muscle:'back',equip:'barbell',level:'intermediate',desc:'杠铃置于安全架上约膝高位置，俯身拉起至站立。',sets:'4×8-10'},
+  {id:80,name:'单臂跪姿划船',muscle:'back',equip:'dumbbell',level:'intermediate',desc:'单膝跪凳，同侧手撑凳面，另一手持哑铃向髋部划船。',sets:'4×10-12'},
+  {id:81,name:'早安体前屈',muscle:'back',equip:'barbell',level:'intermediate',desc:'杠铃置于斜方肌上，俯身至躯干近水平后起身。',sets:'3×10-12'},
+  {id:82,name:'弹力带高位下拉',muscle:'back',equip:'band',level:'beginner',desc:'弹力带挂于高处，坐姿或跪姿向下拉至锁骨位置。',sets:'3×15'},
+  {id:83,name:'坐姿哑铃推举',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'坐于凳上背部挺直，双手持哑铃于肩侧推举至头顶。',sets:'4×10-12'},
+  {id:84,name:'直立划船',muscle:'shoulders',equip:'barbell',level:'intermediate',desc:'站立窄握杠铃于大腿前，沿身体上拉至下颌高度。',sets:'4×10-12'},
+  {id:85,name:'杠铃片环绕',muscle:'shoulders',equip:'dumbbell',level:'beginner',desc:'双手持杠铃片于头侧画圈环绕，活动肩关节。',sets:'3×12-15'},
+  {id:86,name:'弹力带侧平举',muscle:'shoulders',equip:'band',level:'beginner',desc:'单脚踩弹力带，同侧手持带向侧上方拉起至水平。',sets:'3×15'},
+  {id:87,name:'器械推举',muscle:'shoulders',equip:'gym',level:'beginner',desc:'坐于肩部推举机，双手握把手向上推起。',sets:'4×10-12'},
+  {id:88,name:'前蹲',muscle:'legs',equip:'barbell',level:'advanced',desc:'杠铃置于锁骨前三角肌上，身体直立下蹲至大腿平行。',sets:'4×6-10'},
+  {id:89,name:'哈克深蹲',muscle:'legs',equip:'gym',level:'intermediate',desc:'背靠哈克机踏板，肩扛护垫，屈膝下蹲后蹬起。',sets:'4×10-12'},
+  {id:90,name:'相扑硬拉',muscle:'legs',equip:'barbell',level:'intermediate',desc:'宽站距脚尖外展，双手在腿内侧握杠铃拉起。',sets:'4×8-10'},
+  {id:91,name:'腿伸展',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于腿伸展机，脚踝勾住滚轴，膝关节伸直收缩股四头肌。',sets:'4×12-15'},
+  {id:92,name:'坐姿腿弯举',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于腿弯举机，脚踝后侧抵住滚轴下压弯曲膝关节。',sets:'4×12-15'},
+  {id:93,name:'哑铃罗马尼亚硬拉',muscle:'legs',equip:'dumbbell',level:'beginner',desc:'双手持哑铃于体前，俯身至哑铃降至小腿中段。',sets:'4×10-12'},
+  {id:94,name:'弹力带臀桥',muscle:'legs',equip:'band',level:'beginner',desc:'弹力带绕膝上方，仰卧屈膝臀部发力上顶。',sets:'3×15'},
+  {id:95,name:'集中弯举',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'坐姿单臂肘抵大腿内侧，弯举哑铃至肩前。',sets:'3×10-12'},
+  {id:96,name:'上斜哑铃弯举',muscle:'arms',equip:'dumbbell',level:'intermediate',desc:'仰卧于上斜凳，双手持哑铃自然下垂后弯举。',sets:'3×10-12'},
+  {id:97,name:'双杠臂屈伸三头版',muscle:'arms',equip:'bodyweight',level:'intermediate',desc:'双手撑双杠身体垂直不前倾，屈肘下放后撑起，侧重三头。',sets:'3×8-15'},
+  {id:98,name:'窄距俯卧撑',muscle:'arms',equip:'bodyweight',level:'beginner',desc:'两手间距窄于肩，肘贴体侧，屈肘下放后推起。',sets:'3×10-15'},
+  {id:99,name:'弹力带下压',muscle:'arms',equip:'band',level:'beginner',desc:'弹力带挂于高处，双手握带向下压至手臂伸直。',sets:'3×15'},
+  {id:100,name:'仰卧抬腿',muscle:'core',equip:'bodyweight',level:'beginner',desc:'仰卧双腿伸直，核心发力将腿抬起至垂直再缓慢下放。',sets:'3×10-15'},
+  {id:101,name:'雨刷式',muscle:'core',equip:'bodyweight',level:'advanced',desc:'仰卧双腿抬起垂直，左右摆动双腿至最大幅度。',sets:'3×10-12'},
+  {id:102,name:'药球砸地',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'双手持哑铃代替药球，举过头顶后猛力向下砸至地面。',sets:'3×10-12'},
+  {id:103,name:'跳绳',muscle:'fullbody',equip:'bodyweight',level:'beginner',desc:'手持跳绳连续跳动，可作为有氧热身或HIIT。',sets:'3×1-3min'},
+  {id:104,name:'哑铃农夫行走',muscle:'fullbody',equip:'dumbbell',level:'intermediate',desc:'双手各持重哑铃于体侧，挺胸核心收紧向前行走。',sets:'3×30m'},
+  {id:105,name:'战绳',muscle:'fullbody',equip:'gym',level:'intermediate',desc:'双手握战绳两端，交替或同时上下甩动，全身发力。',sets:'3×20-30s'},
+  {id:106,name:'弹力带早安式',muscle:'back',equip:'band',level:'beginner',desc:'双脚踩住弹力带中部于肩上，俯身至躯干水平后起身。',sets:'3×12-15'},
+  {id:107,name:'器械夹腿',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于夹腿机双腿分开，大腿内收肌群发力夹拢。',sets:'4×12-15'},
+  {id:108,name:'器械外展',muscle:'legs',equip:'gym',level:'beginner',desc:'坐于髋外展机，双腿并拢对抗阻力向外展开。',sets:'4×12-15'},
+  {id:109,name:'反向飞鸟机',muscle:'shoulders',equip:'gym',level:'beginner',desc:'面向蝴蝶机坐姿，双手握把手水平向后展开。',sets:'4×12-15'},
+];
+
+var muscleNames={fullbody:'全身',chest:'胸部',back:'背部',shoulders:'肩部',legs:'腿部',arms:'手臂',core:'核心'};
+var equipNames={bodyweight:'自重',dumbbell:'哑铃',barbell:'杠铃',band:'弹力带',gym:'健身房'};
+var levelNames={beginner:'初级',intermediate:'中级',advanced:'高级'};
+var currentPool=[];
+var selectedInPool=new Set();
+
+function getPool(){
+  var m=document.getElementById('gen-muscle').value;
+  var l=document.getElementById('gen-level').value;
+  var e=document.getElementById('gen-equip').value;
+  var all=exercises.concat(customExercises);var pool=all.filter(function(x){
+    if(m!=='fullbody'&&x.muscle!==m)return false;
+    if(e!=='all'&&x.equip!==e)return false;
+    var li=['beginner','intermediate','advanced'].indexOf(l);
+    var xi=['beginner','intermediate','advanced'].indexOf(x.level);
+    return xi<=li+1;
+  });
+  if(pool.length===0){
+    pool=all.filter(function(x){
+      if(m!=='fullbody'&&x.muscle!==m)return false;
+      var li=['beginner','intermediate','advanced'].indexOf(l);
+      var xi=['beginner','intermediate','advanced'].indexOf(x.level);
+      return xi<=li+1;
+    });
+  }
+  return pool;
+}
+
+function onFormChanged(){
+  // Reset view
+  document.getElementById('plan-result').classList.add('hidden');
+  // Immediately show pool
+  refreshPool();
+}
+
+function refreshPool(){
+  var m=document.getElementById('gen-muscle').value;
+  var l=document.getElementById('gen-level').value;
+  var e=document.getElementById('gen-equip').value;
+  var cnt=parseInt(document.getElementById('gen-count').value)||5;
+
+  currentPool=getPool();
+  if(currentPool.length===0){showToast('没有匹配的动作，请调整条件');return;}
+
+  // AI pre-select
+  var pickCnt=Math.min(currentPool.length,cnt);
+  var lvl=['beginner','intermediate','advanced'].indexOf(l);
+  var sorted=currentPool.slice().sort(function(a,b){
+    var ai=['beginner','intermediate','advanced'].indexOf(a.level);
+    var bi=['beginner','intermediate','advanced'].indexOf(b.level);
+    return Math.abs(ai-lvl)-Math.abs(bi-lvl);
+  });
+  selectedInPool=new Set(sorted.slice(0,Math.min(pickCnt*2,sorted.length)).sort(function(){return Math.random()-0.5}).slice(0,pickCnt).map(function(x){return x.id}));
+
+  renderPool(currentPool,m,l,e);
+  document.getElementById('plan-placeholder').classList.add('hidden');
+  document.getElementById('pool-header').classList.remove('hidden');
+  document.getElementById('pool-bottom').classList.remove('hidden');
+  document.getElementById('plan-result').classList.add('hidden');
+}
+
+function renderPool(pool,m,l,e){
+  var cnt=parseInt(document.getElementById('gen-count').value)||5;
+  document.getElementById('pool-title').textContent=muscleNames[m]+' · '+levelNames[l]+' · '+equipNames[e];
+  document.getElementById('pool-subtitle').textContent=pool.length+' 个匹配动作，建议勾选 '+cnt+' 个，但最终由你决定';
+
+  var html='';
+  for(var i=0;i<pool.length;i++){
+    var ex=pool[i];
+    var sel=selectedInPool.has(ex.id);
+    html+='<div class="pool-checkbox'+(sel?' selected':'')+'" data-id="'+ex.id+'" onclick="togglePoolItem('+ex.id+')" style="animation-delay:'+(i*0.015)+'s"><div class="check-box"></div><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip '+(ex.level==='beginner'?'blue':ex.level==='advanced'?'purple':'green')+' mt-1">'+(ex.level==='beginner'?'初级':ex.level==='intermediate'?'中级':'高级')+'</div></div></div>';
+  }
+  document.getElementById('pool-exercises').innerHTML=html;
+  updatePoolCount();
+}
+
+function togglePoolItem(id){
+  if(selectedInPool.has(id))selectedInPool.delete(id);else selectedInPool.add(id);
+  var el=document.querySelector('.pool-checkbox[data-id="'+id+'"]');
+  if(el)el.classList.toggle('selected',selectedInPool.has(id));
+  updatePoolCount();
+}
+
+function selectAllInPool(){selectedInPool=new Set(currentPool.map(function(x){return x.id}));var els=document.querySelectorAll('.pool-checkbox');for(var i=0;i<els.length;i++)els[i].classList.add('selected');updatePoolCount();}
+function deselectAllInPool(){selectedInPool=new Set();var els=document.querySelectorAll('.pool-checkbox');for(var i=0;i<els.length;i++)els[i].classList.remove('selected');updatePoolCount();}
+
+function aiPick(){
+  var cnt=parseInt(document.getElementById('gen-count').value)||5;
+  var l=document.getElementById('gen-level').value;
+  var lvl=['beginner','intermediate','advanced'].indexOf(l);
+  var sorted=currentPool.slice().sort(function(a,b){
+    var ai=['beginner','intermediate','advanced'].indexOf(a.level);
+    var bi=['beginner','intermediate','advanced'].indexOf(b.level);
+    return Math.abs(ai-lvl)-Math.abs(bi-lvl);
+  });
+  var pickCnt=Math.min(currentPool.length,cnt);
+  selectedInPool=new Set(sorted.slice(0,Math.min(pickCnt*2,sorted.length)).sort(function(){return Math.random()-0.5}).slice(0,pickCnt).map(function(x){return x.id}));
+  var els=document.querySelectorAll('.pool-checkbox');
+  for(var i=0;i<els.length;i++){var id=parseInt(els[i].dataset.id);els[i].classList.toggle('selected',selectedInPool.has(id));}
+  updatePoolCount();
+  showToast('AI 已为你推荐 '+selectedInPool.size+' 个动作');
+}
+
+function updatePoolCount(){
+  var el=document.getElementById('pool-count');
+  var n=selectedInPool.size;
+  el.textContent='已选 '+n+' 个';
+  el.className=n===0?'text-sm font-medium text-slate-500':n>12?'text-sm font-medium warning':'text-sm font-medium ok';
+}
+
+function confirmSelection(){
+  if(selectedInPool.size===0){showToast('请至少勾选一个动作');return;}
+  var selected=currentPool.filter(function(e){return selectedInPool.has(e.id)});
+  var m=document.getElementById('gen-muscle').value;
+  var l=document.getElementById('gen-level').value;
+  var e=document.getElementById('gen-equip').value;
+
+  var html='';
+  for(var i=0;i<selected.length;i++){
+    var ex=selected[i];
+    html+='<div class="result-item animate-in" style="animation-delay:'+(i*0.05)+'s"><span class="order-num">'+(i+1)+'</span><div class="flex-1 min-w-0"><div class="font-semibold text-sm">'+ex.name+'</div><div class="text-xs text-slate-500 mt-0.5">'+ex.desc+'</div></div><div class="text-right flex-shrink-0"><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span><div class="chip default mt-1">'+muscleNames[ex.muscle]+'</div></div></div>';
+  }
+  document.getElementById('plan-exercises').innerHTML=html;
+  document.getElementById('plan-title').textContent=muscleNames[m]+'训练 · '+levelNames[l];
+  document.getElementById('plan-summary').textContent=selected.length+' 个动作 · 约 '+(selected.length*5+10)+' 分钟 · '+equipNames[e];
+
+  var tips={fullbody:['复合动作优先，训练前做5分钟动态热身','组间休息60-90秒，复合动作可延长至2分钟','动作顺序：大肌群→小肌群，爆发力→力量→耐力'],chest:['训练前做肩关节热身和空手卧推激活','上斜/平板/下斜动作搭配全面刺激胸肌','离心阶段控制2-3秒，顶峰收缩1秒'],back:['训练前做肩胛骨激活','划船时注意肩胛骨后收，不要用惯性','引体向上建议放在第一个动作'],shoulders:['训练前做肩袖激活和小重量侧平举热身','推举动作放前面，飞鸟类放后面','侧平举用稍轻重量，感受三角肌中束发力'],legs:['训练前充分热身膝盖和髋关节','大重量深蹲放第一个，辅助动作后置','训练后做股四头肌和腘绳肌拉伸'],arms:['复合动作优先，孤立动作后做','弯举时固定上臂不晃动','训练后注意拉伸三头和二头'],core:['卷腹时下巴微收避免颈部代偿','负重训练后做核心训练效果更好','保持正常呼吸，不要憋气']};
+  var dt=['训练前做5-10分钟有氧热身','每个动作选择合适的重量，保证动作质量','训练后做5分钟静态拉伸'];
+  var t=tips[m]||dt;
+  document.getElementById('plan-tips').innerHTML=[].concat(t,dt).slice(0,4).map(function(tx){return '<li>'+tx+'</li>'}).join('');
+
+  document.getElementById('pool-header').classList.add('hidden');
+  document.getElementById('pool-exercises').innerHTML='';
+  document.getElementById('pool-bottom').classList.add('hidden');
+  document.getElementById('plan-result').classList.remove('hidden');
+  document.getElementById('plan-result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function backToPool(){
+  document.getElementById('plan-result').classList.add('hidden');
+  document.getElementById('pool-header').classList.remove('hidden');
+  document.getElementById('pool-bottom').classList.remove('hidden');
+  renderPool(currentPool,document.getElementById('gen-muscle').value,document.getElementById('gen-level').value,document.getElementById('gen-equip').value);
+  document.getElementById('pool-header').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function quickGenerate(){
+  var m=document.getElementById('quick-muscle').value;
+  var l=document.getElementById('quick-level').value;
+  var e=document.getElementById('quick-equip').value;
+  document.getElementById('gen-muscle').value=m;
+  document.getElementById('gen-level').value=l;
+  document.getElementById('gen-equip').value=e;
+  document.getElementById('gen-count').value=5;
+  showPage('generate');
+  setTimeout(refreshPool,300);
+}
+
+function showPage(name){
+  var secs=document.querySelectorAll('.page-section');
+  for(var i=0;i<secs.length;i++)secs[i].classList.remove('active');
+  document.getElementById('page-'+name).classList.add('active');
+  var links=document.querySelectorAll('.nav-link');
+  for(var j=0;j<links.length;j++)links[j].classList.toggle('active',links[j].dataset.page===name);
+  window.scrollTo({top:0,behavior:'smooth'});
+  // Auto-show pool when landing on generate page
+  if(name==='generate')refreshPool();
+}
+
+function renderLibrary(filter){
+  var grid=document.getElementById('library-grid');
+  var allEx=exercises.concat(customExercises);var filtered=filter==='all'?allEx:allEx.filter(function(e){return e.muscle===filter});
+  var html='';
+  for(var i=0;i<filtered.length;i++){
+    var ex=filtered[i];
+    html+='<div class="exercise-card animate-in">'+(ex.custom?'<div onclick="event.stopPropagation();deleteCustomExercise('+ex.id+')" class="absolute top-2 right-2 text-slate-500 hover:text-red-400 cursor-pointer" title="删除自定义动作"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>':'')+'<div class="flex items-start justify-between mb-1.5"><h4 class="font-semibold text-sm">'+ex.name+'</h4><span class="text-xs font-medium text-[#00ff87]">'+ex.sets+'</span></div><p class="text-xs text-slate-500 mb-2.5">'+ex.desc+'</p><div class="flex gap-1.5 flex-wrap"><span class="chip green">'+muscleNames[ex.muscle]+'</span><span class="chip orange">'+equipNames[ex.equip]+'</span><span class="chip '+(ex.level==='beginner'?'blue':ex.level==='advanced'?'purple':'')+'">'+(ex.level==='beginner'?'初级':ex.level==='intermediate'?'中级':'高级')+'</span></div></div>';
+  }
+  grid.innerHTML=html;
+}
+function filterLibrary(filter,el){
+  var btns=document.querySelectorAll('#page-library .tab-btn');
+  for(var i=0;i<btns.length;i++)btns[i].classList.remove('active');
+  if(el)el.classList.add('active');
+  renderLibrary(filter);
+}
+
+var timerTotal=60,timerRemaining=60,timerInterval=null,timerRunning=false;
+function updateTimerDisplay(){
+  var m=Math.floor(timerRemaining/60),s=timerRemaining%60;
+  document.getElementById('timer-display').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  document.getElementById('timer-ring').style.setProperty('--progress',((timerTotal-timerRemaining)/timerTotal*100)+'%');
+}
+function setTimer(s){if(timerRunning)return;timerTotal=s;timerRemaining=s;updateTimerDisplay();document.getElementById('timer-state').textContent='准备就绪';}
+function setCustomTimer(){var v=parseInt(document.getElementById('timer-custom').value);if(v&&v>=10&&v<=300)setTimer(v);}
+function _r(){document.getElementById('timer-start-btn').innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>开始';}
+function startTimer(){if(timerRunning)return;timerRunning=true;document.getElementById('timer-start-btn').innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>运行中';timerInterval=setInterval(function(){timerRemaining--;updateTimerDisplay();if(timerRemaining<=0){clearInterval(timerInterval);timerRunning=false;_r();document.getElementById('timer-state').textContent='休息结束！';document.getElementById('timer-ring').style.setProperty('--progress','100%');showToast('休息时间到！准备下一组！');}else if(timerRemaining<=10){document.getElementById('timer-state').textContent='即将结束……';}else{document.getElementById('timer-state').textContent='正在休息……';}},1000);}
+function pauseTimer(){if(!timerRunning)return;clearInterval(timerInterval);timerRunning=false;document.getElementById('timer-start-btn').innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>继续';document.getElementById('timer-state').textContent='已暂停';}
+function resetTimer(){clearInterval(timerInterval);timerRunning=false;timerRemaining=timerTotal;updateTimerDisplay();_r();document.getElementById('timer-state').textContent='已重置';}
+
+var _tt=null;
+function showToast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.remove('hidden');clearTimeout(_tt);_tt=setTimeout(function(){e.classList.add('hidden')},3000);}
+
+var customExercises=JSON.parse(localStorage.getItem('lns_custom')||'[]');
+function openAddModal(){document.getElementById('add-exercise-modal').classList.remove('hidden');}
+function closeAddModal(){document.getElementById('add-exercise-modal').classList.add('hidden');document.getElementById('custom-name').value='';document.getElementById('custom-desc').value='';document.getElementById('custom-sets').value='';}
+function saveCustomExercise(){
+  var n=document.getElementById('custom-name').value.trim();
+  if(!n){showToast('请输入动作名称');return;}
+  var m=document.getElementById('custom-muscle').value;
+  var e=document.getElementById('custom-equip').value;
+  var l=document.getElementById('custom-level').value;
+  var d=document.getElementById('custom-desc').value.trim()||'自定义动作';
+  var s=document.getElementById('custom-sets').value.trim()||'3×10-12';
+  var maxId=0;
+  exercises.forEach(function(x){if(x.id>maxId)maxId=x.id;});
+  customExercises.forEach(function(x){if(x.id>maxId)maxId=x.id;});
+  var ex={id:maxId+1,name:n,muscle:m,equip:e,level:l,desc:d,sets:s,custom:true};
+  customExercises.push(ex);
+  localStorage.setItem('lns_custom',JSON.stringify(customExercises));
+  closeAddModal();
+  showToast('已添加：'+n);
+  renderLibrary(document.querySelector('#page-library .tab-btn.active')?document.querySelector('#page-library .tab-btn.active').dataset.target:'all');
+  if(document.getElementById('page-generate').classList.contains('active'))refreshPool();
+}
+function deleteCustomExercise(id){
+  customExercises=customExercises.filter(function(x){return x.id!==id;});
+  localStorage.setItem('lns_custom',JSON.stringify(customExercises));
+  renderLibrary(document.querySelector('#page-library .tab-btn.active')?document.querySelector('#page-library .tab-btn.active').dataset.target:'all');
+  if(document.getElementById('page-generate').classList.contains('active'))refreshPool();
+  showToast('已删除');
+}
+
+
+renderLibrary('all');
+updateTimerDisplay();
+</script>
+</body>
+</html>
