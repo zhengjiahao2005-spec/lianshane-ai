@@ -122,7 +122,7 @@
         <div class="grid sm:grid-cols-4 gap-3">
           <select id="quick-muscle" class="form-select"><option value="fullbody">全身训练</option><option value="chest">胸部</option><option value="back">背部</option><option value="shoulders">肩部</option><option value="legs">腿部</option><option value="arms">手臂</option><option value="core">核心</option></select>
           <select id="quick-level" class="form-select"><option value="beginner">初级</option><option value="intermediate" selected>中级</option><option value="advanced">高级</option></select>
-          <select id="quick-equip" class="form-select"><option value="bodyweight">自重</option><option value="dumbbell" selected>哑铃</option><option value="barbell">杠铃</option><option value="band">弹力带</option><option value="gym">健身房</option></select>
+          <select id="quick-equip" class="form-select"><option value="all">全部器械</option><option value="bodyweight">自重</option><option value="dumbbell" selected>哑铃</option><option value="barbell">杠铃</option><option value="band">弹力带</option><option value="gym">健身房</option></select>
           <button onclick="quickGenerate()" class="btn-primary rounded-xl py-2.5 text-sm font-bold">去挑选动作</button>
         </div>
       </div>
@@ -137,7 +137,7 @@
         <div class="grid sm:grid-cols-4 gap-3">
           <div><label class="block text-xs font-medium mb-1 text-slate-400">目标肌群</label><select id="gen-muscle" class="form-select" onchange="onFormChanged()"><option value="fullbody">全身训练</option><option value="chest">胸部</option><option value="back">背部</option><option value="shoulders">肩部</option><option value="legs">腿部</option><option value="arms">手臂</option><option value="core">核心</option></select></div>
           <div><label class="block text-xs font-medium mb-1 text-slate-400">训练水平</label><select id="gen-level" class="form-select" onchange="onFormChanged()"><option value="beginner">初级</option><option value="intermediate" selected>中级</option><option value="advanced">高级</option></select></div>
-          <div><label class="block text-xs font-medium mb-1 text-slate-400">可用器械</label><select id="gen-equip" class="form-select" onchange="onFormChanged()"><option value="bodyweight">自重</option><option value="dumbbell" selected>哑铃</option><option value="barbell">杠铃</option><option value="band">弹力带</option><option value="gym">健身房</option></select></div>
+          <div><label class="block text-xs font-medium mb-1 text-slate-400">可用器械</label><select id="gen-equip" class="form-select" onchange="onFormChanged()"><option value="all">全部器械</option><option value="bodyweight">自重</option><option value="dumbbell" selected>哑铃</option><option value="barbell">杠铃</option><option value="band">弹力带</option><option value="gym">健身房</option></select></div>
           <div class="flex items-end gap-2">
             <div class="flex-1"><label class="block text-xs font-medium mb-1 text-slate-400">练几个动作</label><input id="gen-count" type="number" min="1" max="20" value="5" class="form-select text-center" style="padding-right:14px;background-image:none" onchange="onFormChanged()" /></div>
             <button onclick="aiPick()" class="btn-primary rounded-lg px-4 py-2.5 text-sm font-semibold whitespace-nowrap">AI推荐</button>
